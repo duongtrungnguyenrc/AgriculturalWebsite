@@ -1,5 +1,5 @@
 <?php
-    include 'admin.php';
+    include '../part/admin.php';
 	include '../model/handler.php';
 ?>
 
@@ -17,10 +17,11 @@
 						</li>
 					</ul>
 				</div>
-				<a href="#" class="btn-download">
-					<i class='bx bxs-cloud-download' ></i>
-					<span class="text">Upload file</span>
-				</a>
+				<div href="#" class="btn-upload">
+					<i class='bx bxs-cloud-upload' ></i>
+					<input id="file-input" type="file" class="text" accept=".xlsx">
+					<button class="btn btn-sm">Upload file</button>
+				</div>
 			</div>
             <div class="table-data">
 				<div class="order col-12">
@@ -42,7 +43,7 @@
 						<thead>
 							<tr>
 								<th>ID</th>
-								<th>User</th>
+								<th>Type</th>
                                 <th>Control</th>
 							</tr>
 						</thead>

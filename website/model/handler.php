@@ -1,18 +1,54 @@
 <?php
-    require_once 'DBInteract.php';
+    require_once 'config.php';
 ?>
 <?php
-    class handler extends DBInteract{
+    class handler{
 
+        private $conn;
         public function __construct() {
-            parent::__construct();
+            $this->conn = new mysqli(host, user, pass, db_name);
+            if (!$this->conn) {
+            die("Connection failed: " . $conn->connect_error);
+            }
         }
 
-        public function login() {
-            $user = $_POST['user'];
-            $password = $_POST['password'];
-            $sql = "select * from users where user='$user' and password='$password'";
-            return $this->getData($sql);       
+        private function insert($sql) {
+            try {
+                $this->conn->query($sql);
+                return true;
+            } catch (Exception $e) {
+                return false;
+            }
+        }
+
+        private function getData($sql) {
+            try {
+                return $this->conn->query($sql);
+            } catch (Exception $e) {
+                return null;
+            }
+        }
+
+        private function updateData($sql) {
+            try {
+                $this->conn->query($sql);
+                return true;
+            } catch (Exception $e) {
+                return false;
+            }
+        }
+
+        private function deleteData($sql) {
+            try {
+                $this->conn->query($sql);
+                return true;
+            } catch (Exception $e) {
+                return false;
+            }
+        }
+
+        private function disableConnect(){
+            $this->conn->close();
         }
 
         public function getAllUsers() {
@@ -27,18 +63,30 @@
             return $users;
         }
 
-        public function getUser($user, $password) {
-            $sql = "select * from users where user='$user' and password='$password'";
-            return $this->getData($sql)->fetch_assoc();  
+        public function login($user, $password) {
+            $sql = "SELECT * FROM users WHERE user='$user'";
+            if($data = $this->conn->query($sql)->fetch_assoc()) {
+                if(password_verify($password, $data['password'])) {
+                    return $data['role'];
+                }
+            }
+            return false;  
+        }
+
+        public function getUser($user) {
+            $sql = "SELECT * FROM users WHERE user='$user'";
+            return $this->conn->query($sql)->fetch_assoc();
         }
 
         public function addNewUser($user, $password, $name, $birth, $gender, $phone, $address) {
-            $sql = "insert into users(user, password, name, birth, gender, phone, address) values('$user', '$password', '$name', '$birth', '$gender', '$phone', '$address')";
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $sql = "insert into users(user, password, name, birth, gender, phone, address) values('$user', '$hashed_password', '$name', '$birth', '$gender', '$phone', '$address')";
             return $this->insert($sql);
         }
 
         public function updateUser($id, $user, $password, $name, $phone, $address, $gender, $birth) {
-            $sql = "update users set user='$user', password='$password', name='$name', phone='$phone', address='$address', gender='$gender', birth='$birth' where id='$id'";
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $sql = "update users set user='$user', password='$hashed_password', name='$name', phone='$phone', address='$address', gender='$gender', birth='$birth' where id='$id'";
             return $this->updateData($sql);
         }
 
@@ -76,6 +124,11 @@
             return $this->getData($sql)->fetch_assoc(); 
         }
 
+         public function getProductByID($id) {
+            $sql = "select * from products where id='$id'";
+            return $this->getData($sql)->fetch_assoc(); 
+        }
+
         public function addNewProduct($type, $name, $price, $description, $img) {
             $sql = "insert into products(type, name, price, description, img) values ('$type', '$name', '$price', '$description', '$img')";
             return $this->insert($sql);
@@ -105,8 +158,8 @@
             return $types;
         } 
 
-        public function getType($type) {
-            $sql = "select * from types where type='$type'";
+        public function getType($id) {
+            $sql = "select * from types where id='$id'";
             return $this->getData($sql)->fetch_assoc();
         }
 

@@ -1,8 +1,9 @@
 <?php
-    include 'admin.php';
+    include '../part/admin.php';
+	include '../model/handler.php';
 ?>
 
-<main>
+		<main>
 			<div class="head-title">
 				<div class="left">
 					<h1>Admin</h1>
@@ -16,10 +17,11 @@
 						</li>
 					</ul>
 				</div>
-				<a href="#" class="btn-download">
-					<i class='bx bxs-cloud-download' ></i>
-					<span class="text">Upload file</span>
-				</a>
+				<div href="#" class="btn-upload">
+					<i class='bx bxs-cloud-upload' ></i>
+					<input id="file-input" type="file" class="text" accept=".xlsx">
+					<button id="load-file-data" class="btn btn-sm">Upload file</button>
+				</div>
 			</div>
             <div class="table-data">
 				<div class="order">
@@ -34,12 +36,19 @@
 
 					<div id="add-product-form" class="insert-data-form">
 							<select name="" id="">
-								<option value="1">
-									Trái cây
+								<option value="" disabled selected>
+									Type
 								</option>
-								<option value="2">
-									Rau củ
+								<?php
+								$handler = new handler();
+									foreach($handler->getAllTypes() as $type){
+								?>
+								<option value="<?php echo $type['id'] ?>">
+								<?php echo $type['type'] ?>
 								</option>
+								<?php
+									}
+								?>
 							</select>
 	
 							<input type="text" placeholder="Name">
