@@ -1,5 +1,5 @@
-<?php
-    include '../part/header.php';
+<?php    
+    include '../part/home.php';
 ?>
             <div id="payment">
                 <div id="payment-page" class="w-100">
@@ -30,28 +30,28 @@
                                 <div id="input-delivery-info" class="mt-4">
                                     <form id="input-delivery-address-form" class="row g-3">
                                         <div class="col-md-6">
-                                          <input type="text" class="form-control" id="full-name" placeholder="Full name" <?php echo $login ? "value=\"". $user['full_name'] ."\"" . " disabled" : ""?> required>
+                                          <input type="text" class="form-control" id="payment-full-name" placeholder="Full name" <?php echo $login ? "value=\"". $user['full_name'] ."\"" . " disabled" : ""?> required>
                                         </div>
                                         <div class="col-md-6">
-                                          <input type="text" class="form-control" id="phone" placeholder="Phone" <?php echo $login ? "value=\"". $user['phone'] ."\"" . " disabled" : ""?> required>
+                                          <input type="text" class="form-control" id="payment-phone" placeholder="Phone" <?php echo $login ? "value=\"". $user['phone'] ."\"" . " disabled" : ""?> required>
                                         </div>
                                         <div class="col-md-6">
-                                          <select class="form-select" id="city" <?php echo $login ? 'disabled' : '' ?> required>
+                                          <select class="form-select" id="payment-city" <?php echo $login ? 'disabled' : '' ?> required>
                                             <option selected <?php echo $login ? "value=\"" . explode("-", explode(",",$user['address'])[0])[0]  . "\"" : 'disabled' ?>"><?php echo $login ? explode("-", explode(",",$user['address'])[0])[1] : 'City' ?></option>
                                           </select>
                                         </div>
                                         <div class="col-md-6">
-                                            <select class="form-select" id="district" <?php echo $login ? 'disabled' : '' ?> required>
+                                            <select class="form-select" id="payment-district" <?php echo $login ? 'disabled' : '' ?> required>
                                               <option selected <?php echo $login ? "value=\"" . explode("-", explode(",",$user['address'])[1])[0] . "\"" : 'disabled' ?>"><?php echo $login ? explode("-", explode(",",$user['address'])[1])[1] : 'District' ?></option>
                                             </select>
                                           </div>
                                         <div class="col-md-12">
-                                            <select class="form-select" id="ward" <?php echo $login ? 'disabled' : '' ?> required>
+                                            <select class="form-select" id="payment-ward" <?php echo $login ? 'disabled' : '' ?> required>
                                                 <option selected <?php echo $login ? "value=\"". explode("-", explode(",",$user['address'])[2])[0]  . "\"" : 'disabled' ?>"><?php echo $login ? explode("-", explode(",",$user['address'])[2])[1] : 'Ward' ?></option>
                                             </select>
                                         </div>
                                         <div class="col-md-12">
-                                            <input type="text" class="form-control" id="address" placeholder="Address" <?php echo $login ? "disabled " . "value=\"". explode("-", explode(",",$user['address'])[3])[0] . "" : '' ?>" required>
+                                            <input type="text" class="form-control" id="payment-address" placeholder="Address" <?php echo $login ? "disabled " . "value=\"". explode("-", explode(",",$user['address'])[3])[0] . "" : '' ?>" required>
                                           </div>
                                     </form>
                                 </div>
@@ -85,8 +85,13 @@
                         }
                     ?>
                     <div class="col-lg-4 col-12" id="order-summary-frame">
+                        <div id="discount-group">
+                            <h4>Discount</h4>
+                            <input type="text" id="discount-code" class="form-control" placeholder="Discount code">
+                            <button id="get-discount-btn" class="btn btn-outline-dark">Get discount</button>
+                        </div>
                         <div id="order-summary">
-                            <h3 class="mb-3">Total prices of cart</h3>
+                            <h3 class="mb-3">Invoice summary</h3>
                             <div>
                                 <p>Number of products:</p>
                                 <p><?php echo $numberOfProducts ?></p>
@@ -101,7 +106,7 @@
                             </div>
                             <div>
                                 <p>Discount: </p>
-                                <p>0</p>
+                                <p id="discount">0 VNĐ</p>
                             </div>
                             <div>
                                 <p>Last prices:</p>

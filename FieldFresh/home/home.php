@@ -1,11 +1,11 @@
 <?php    
-    include '../part/header.php';
+    include '../part/home.php';
 ?>
             <div id="main-content">
-            <a class="btn btn-success" id="scroll-to-top">
-                <i class='bx bxs-to-top'></i>
-            </a>
-                <div id="content-header-frame" class="position-relative">
+                <a class="btn btn-success" id="scroll-to-top">
+                    <i class='bx bxs-to-top'></i>
+                </a>
+                <div id="content-header-frame">
                     <div id="content-header">
                         <div class="col-7 content">
                             <h1>Field Fresh - Fresh farm produce for everyone!</h1>
@@ -17,14 +17,11 @@
                                 <?php
                                     if(!$login){
                                 ?>
-                                <button class="btn btn-success">Log in now <i class='bx bx-log-in-circle'></i></button>
+                                <a href="../login/login.php" class="btn btn-success">Log in now <i class='bx bx-log-in-circle'></i></a>
                                 <?php
                                     }
                                 ?>
                             </div>
-                        </div>
-                        <div class="col-5 intro">
-                            <!-- <img src="../pictures/background.png" alt=""> -->
                         </div>
                     </div>
                 </div>
@@ -51,10 +48,10 @@
                                             </div>
                                             <div class="product-content">
                                                 <div class="product-info">
-                                                    <a href="./product.php?id=<?php echo $product['product_name'] ?>&type=<?php echo $type['type']; ?>">
+                                                    <a href="./product.php?name=<?php echo $product['product_name'] ?>&type=<?php echo $type['type']; ?>">
                                                         <p class="product-name"><?php echo $product['product_name'] ?></p>
                                                     </a>
-                                                    <label class="prices">$ <?php echo $product['sale_price'] ?></label>
+                                                    <label class="prices"><?php echo $product['sale_price'] ?> VNĐ</label>
                                                 </div>
                                                 <div class="description">
                                                 <?php echo $product['description'] ?>
@@ -115,25 +112,64 @@
                         </div>
                     </div>
                 </div>
-                <div id="contact" class="w-100">
-                    <div class="row">
-                        <div class="col-6">
-                            <i class='bx bx-time-five' ></i>
-                            <label for="">Đặt online giao tận nhà đúng giờ</label>
-                        </div>
-                        <div class="col-6">
-                            <i class='bx bx-transfer-alt'></i>
-                            <label for="">Đổi, trả sản phẩm Trong vòng 7 ngày</label>
-                        </div>
+                <div id="footer" class="w-100">
+                    <div id="main-footer" class="col-12">
+                       <div class="container">
+                            <div class="col-3 h-100 quick-links">
+                                <div class="footer-title">
+                                    Quick Links
+                                </div>
+                                <ul class="heading">
+                                    <li><a href="./home.php">Home</a></li>
+                                    <li><a href="./cart.php">Cart</a></li>
+                                    <li><a href="./order.php">Order</a></li>
+                                    <!-- <li><a href="../login/login.php">Login</a></li> -->
+                                </ul>
+                            </div>
+                            <div class="col-6 h-100 locations">
+                                <div class="footer-title">
+                                    Our Location
+                                </div>
+                                <ul>
+                                    <li>25/26 Nguyen Dinh Chieu - Vinh Tho - Nha Trang</li>
+                                    <li>Mon - Fri: 08:00 am - 10:00 pm</li>
+                                    <li>Sat - Sun: 10:00 am - 11:00 pm</li>
+                                    <li>(+84)855004714</li>
+                                </ul>
+                            </div>
+                            <div class="col-3 h-100 join-team">
+                                <div class="footer-title">
+                                    Join our team
+                                </div>
+                                <ul class="">
+                                    <li><a href="#">Developer: Trung Nguyen</a></li>
+                                    <li><a href="">spiritual cheer: Bieu Ly</a></li>
+                                    <li><a href="">Tester: Trung Nguyen</a></li>
+                                    <li><a href=""> </a></li>
+                                </ul>
+                            </div>
+                       </div>
                     </div>
-                    <div class="row">
-                        <div class="col-6">
-                            <i class='bx bx-phone-call'></i>
-                            <label for="">Tổng đài: 0855004714 (0:00 - 23:00)</label>
-                        </div>
-                        <div class="col-6">
-                            <i class='bx bx-message-dots'></i>
-                            <label for="">duongtrungnguyen.it</label>
+                    <div id="end-footer">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-12 main-end-footer">
+                                    <div class="payment">
+                                        <span>Payment options:</span>
+                                        <span class="ms-2">
+                                            <img src="http://glorywebsdemo.com/themeforest/html/carveordering/images/card_img.png" alt="">
+                                        </span>
+                                    </div>
+                                    <div class="social">
+                                        <ul>
+                                            <li><a href=""><i class='bx bxl-facebook' ></i></a></li>
+                                            <li><a href=""><i class='bx bxl-instagram'></i></a></li>
+                                            <li><a href=""><i class='bx bxl-github' ></i></a></li>
+                                            <li><a href=""><i class='bx bxl-twitter' ></i></a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

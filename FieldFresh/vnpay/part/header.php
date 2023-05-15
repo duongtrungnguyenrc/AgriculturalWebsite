@@ -11,7 +11,7 @@
         <!-- Bootstrap core CSS -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <!-- Custom styles for this template -->
-        <link href="/vnpay_php/assets/jumbotron-narrow.css" rel="stylesheet">  
+        <link href="./assets/jumbotron-narrow.css" rel="stylesheet">  
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
         <link href="./assets/custom.css" rel="stylesheet">
     </head>

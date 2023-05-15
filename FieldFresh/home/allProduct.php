@@ -1,5 +1,5 @@
 <?php
-    include '../part/header.php';
+    include '../part/home.php';
 ?>
 <style>
     #products-category .products-list .products .product:nth-child(n+13){

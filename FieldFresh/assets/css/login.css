@@ -219,6 +219,11 @@ a > * {
     color: var(--light);
 }
 
+#container .content div#form-frame form.login button.active{
+    background-color: var(--red);
+    color: var(--light);
+}
+
 #container .content div#form-frame form.login button i{
    font-size: 2rem;
 }

@@ -1,4 +1,3 @@
-const token = "c3ccf572-dd29-11ed-921c-de4829400020";
 
 $(document).ready(function () {
   $.ajax({
@@ -11,6 +10,9 @@ $(document).ready(function () {
       response.data.forEach(province => {
         $(`<option value="${province.ProvinceID + "-" + province.ProvinceName}">${province.ProvinceName}</option>`).appendTo($("#rg-province"));
       });
+    },
+    error: function(xhr, status, error) {
+        console.log(error);
     }
   });
   $("#rg-province").change((e) => {
@@ -24,10 +26,20 @@ $(document).ready(function () {
       headers: {
         'Token': token,
       },
+      beforeSend: function() {
+        $.blockUI({ message: '<div class="spinner-border text-light"></div>' , css: {backgroundColor: "transparent", padding: "100px", border: "none"}});
+      },
       success: function(response) {
         response.data.forEach(district => {
           $(`<option value="${district.DistrictID + "-" + district.DistrictName}">${district.DistrictName}</option>`).appendTo($("#rg-district"));
         });
+      },
+      error: function(xhr, status, error) {
+          console.log(error);
+      }
+      ,
+      complete: function() {
+          $.unblockUI();
       }
     });
   })
@@ -40,32 +52,45 @@ $(document).ready(function () {
       headers: {
         'Token': token,
       },
+      beforeSend: function() {
+        $.blockUI({ message: '<div class="spinner-border text-light"></div>' , css: {backgroundColor: "transparent", padding: "100px", border: "none"}});
+      },
       success: function(response) {
         response.data.forEach(ward => {
           $(`<option value="${ward.WardCode + "-" + ward.WardName}">${ward.WardName}</option>`).appendTo($("#rg-ward"));
         });
+      },
+      error: function(xhr, status, error) {
+          console.log(error);
+      }
+      ,
+      complete: function() {
+          $.unblockUI();
       }
     });
   })
 
-
-
-
-
-
+  $("#lg-password").on("input", function(e) {
+    if (e.target.value == "") {
+      $("#login").removeClass("active");
+    }
+    else {
+      $("#login").addClass("active");
+    }
+  });
 
   $("#register-navigation a").click( (e) => {
     e.preventDefault();
     showRegisterForm();
+  })
 
-    })
   $("#login-navigation a").click( (e) => {
     e.preventDefault();
     showLoginForm();
   })
 
   $("#login-form").submit((e) => {
-    e.preventDefault()
+    e.preventDefault();
     $.post("../api/customer/login.php", {userName: $("#lg-user").val(), password: $("#lg-password").val()},
       function (data) {
         if(data.status) {
@@ -126,18 +151,4 @@ function showLoginForm() {
   $("#container .content").removeClass("register");
   $("form.login").addClass("show");
   $("form.register").removeClass("show");
-}
-
-function showSuccessNotifycation(text) {
-  $(`<div id="notifycation" class="success">${text}</div>`).appendTo("#container");
-  setTimeout(() => {
-      $("#notifycation").remove();
-  }, 3000);
-}
-
-function showFailedNotifycation(text) {
-  $(`<div id="notifycation">${text}</div>`).appendTo("#container");
-  setTimeout(() => {
-      $("#notifycation").remove();
-  }, 3000);
 }

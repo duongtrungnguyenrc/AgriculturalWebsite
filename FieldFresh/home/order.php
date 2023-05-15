@@ -1,90 +1,224 @@
 <?php
-    include '../part/header.php';
+    include '../part/home.php';
 ?>
-             <div id="cart">
-                <div id="cart-page" class="w-100">
-                    <div class="col-lg-8 col-12">
-                        <div id="purchase-process">
-                            <div id="process-line"></div>
-                            <ul class="d-flex w-100 list-unstyled">
-                                <li class="active"><span>Cart</span></li>
-                                <li class=""><span>Ordered</span></li>
-                                <li class=""><span>Delivery</span></li>
-                                <li><span>Completed</span></li>
-                            </ul>
+            <div id="order" class="w-100 h-100">
+                <div id="order-left" class="col-4 h-100">
+                    <div id="order-filter" class="col-12">
+                        <div class="head">
+                            <h1>Your orders</h1>
                         </div>
-                        <div id="cart-list">
-                            <div id="cart-list-header">
-                                <h2>Your cart <label id="cart-quantity" class="prices-txt">has 2 products</label></h2>
+                        <div class="filter-form">
+                            <div class="form-group">
+                                <select class="form-select" name="" id="filter-slt">
+                                    <option value="all">All orders</option>
+                                    <option value="pending">Pending orders</option>
+                                    <option value="processing">Processing orders</option>
+                                    <option value="completed">Completed orders</option>
+                                    <option value="rejected">Rejected orders</option>
+                                </select>
                             </div>
-                            <table class="w-100">
-                                <thead>
-                                    <tr>
-                                        <th>Product</th>
-                                        <th>Quantity</th>
-                                        <th>Total price</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    if(isset( $_SESSION['cart'])){
-                                        $cart = $_SESSION['cart'];
-                                        foreach($cart as $key => $value) {
-                                    ?>
-                                    <tr class="cart-item">
-                                        <td class="product-info">
-                                            <img src="<?php echo $value['img']?>" alt="">
-                                            <div class="product-content">
-                                                <h4 class="name"><?php echo $value['name']?></h4>
-                                                <p>Price: <label class="price"><?php echo $value['price']?></label></p>
-                                                <p>Unit: <label class="unit"><?php echo $value['unit']?></label></p>
-                                            </div>
-                                        </td>
-                                        <td class="quantity-info">
-                                            <div class="quantity-group">
-                                                <button class="decrease">-</button>
-                                                <div class="quantity"><?php echo $value['quantity']?></div>
-                                                <button class="increase">+</button>
-                                            </div>
-                                        </td>
-                                        <td class="total-price">
-                                            <h4 class="prices-txt"></h4>
-                                        </td>
-                                        <td class="control">
-                                            <button class="remove-btn"><i class='bx bx-trash'></i></button>
-                                        </td>
-                                    </tr>
-                                    <?php  
-                                        }
-                                    }
-                                    ?>
-                                </tbody>
-                            </table>
+                            <div class="form-group filter-group">
+                                <input type="text" class="form-control">
+                                <button class="btn btn-primary">Apply</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-lg-4 col-12" id="order-summary-frame">
-                        <div id="order-summary">
-                            <h3 class="mb-4">Total prices of cart</h3>
-                            <div>
-                                <p>Number of products:</p>
-                                <p id="number-of-products"></p>
+                    <div id="order-list">
+                        <?php
+                            $orders = $sever->getOrdersByUser($_SESSION['userName'], true);
+                            if(isset($orders)){
+                            foreach($orders as $key => $order) {
+                                $details = $sever->getOrderDetail($order['id']);
+                        ?>
+                        <div class="order <?php echo $key === 0 ? "active" : ''?>">
+                            <div class="order-top">
+                                <div class="status <?php echo $order['status'] ?>">
+                                    <?php echo $order['status'] ?>
+                                </div>
+                                <div class="prices">
+                                    <?php echo $order['total_prices'] + $order['delivery_prices'] - $order['discount']?> VNĐ
+                                </div>
                             </div>
-                            <div>
-                                <p>Total prices:</p>
-                                <p id="last-prices" class="prices-txt"></p>
-                            </div>
-                            <div>
-                                <p>Discount: </p>
-                                <p>no</p>
+                            <div class="order-body">
+                                <div class="order-id">
+                                    Order id: <?php echo $order['id'] ?>
+                                </div>
+                                <div class="order-name">
+                                    <?php
+                                        $orderName = "";
+                                        foreach($details as $i => $detail) {
+                                            $i != count($details) - 1 ? $orderName .= $detail['product_name'] . ", " : $orderName .= $detail['product_name'];
+                                        }
+                                        echo $orderName;
+                                    ?>
+                                </div>
                             </div>
                         </div>
-                        <button id="purchase-button" class="mt-4">Purchase</button>
+                        <?php
+                            }
+                        }
+                        ?>
+                    </div>
+                </div>
+                <div id="order-right" class="col-8 h-100">
+                    <div class="detail-top">
+                        <div class="heading">
+                            <h1 class="order-id">
+                                <?php
+                                    echo isset($orders) && count($orders) > 0 ? "Order id: " . $orders[0]['id'] : "You don't have any orders yet!";
+                                ?>
+                            </h1>
+                            <button>
+                                <i class='bx bx-dots-horizontal-rounded'></i>
+                            </button>
+                        </div>
+                        <div class="short-info">
+                            <span class="order-name">
+                                <?php 
+                                if (isset($details)) {
+                                    $details = $sever->getOrderDetail($orders[0]['id']);
+                                    $orderName = "";
+                                        foreach($details as $i => $detail) {
+                                            $i != count($details) - 1 ? $orderName .= $detail['product_name'] . ", " : $orderName .= $detail['product_name'];
+                                        }
+                                    echo $orderName;
+                                }
+                                ?>
+                             </span>
+                        </div>
+                    </div>
+                    <div class="detail-body">
+                    <?php
+                        if(isset($orders) && count($orders) > 0){
+                            $order = $sever->getOrderById($orders[0]['id']);
+                            $user = $sever->getUserInfo($order['user_name']);
+                            $details = $sever->getOrderDetail($orders[0]['id']);
+                    ?>
+                        <div class="order-detail">
+                            <div class="order-top">
+                                <div class="avatar">
+                                    <?php
+                                        echo substr(implode(" ", array_reverse(explode(" ", $user['full_name']))), 0, 1) ;
+                                    ?>
+                                </div>
+                                <div class="order-info">
+                                    <h4 class="customer-name">
+                                        <?php
+                                            echo $user['full_name'];
+                                        ?>
+                                    </h4>
+                                    <span class="order-id">
+                                        <?php
+                                            echo "Order id: " . $orders[0]['id'];
+                                        ?>
+                                    </span>
+                                    <span class="date-order">
+                                        <?php
+                                            echo "Date: " . $orders[0]['creation_date'];
+                                        ?>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="address-info">
+                                <div class="form">
+                                    <h5>From<br>Field Fresh</h5>
+                                    <span>25/26 Nguyen Dinh Chieu - Vinh Tho - Nha Trang</span>
+                                </div>
+                                <div class="to">
+                                    <h5>To</h5>
+                                    <h5 class="to-name">
+                                        <?php
+                                            echo $user['full_name'];
+                                        ?>
+                                    </h5>
+                                    <span class="to-address">
+                                    <?php
+                                            echo preg_replace('/,/', ' - ', preg_replace('/\d+-/', '', $user['address']));
+                                        ?>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="order-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                Unit
+                                            </th>
+                                            <th>
+                                                Price
+                                            </th>
+                                            <th>
+                                                Name
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                            foreach($details as $detail) {
+                                        ?>
+                                        <tr>
+                                            <td><?php echo $detail['unit']?></td>
+                                            <td><?php echo $detail['price']?></td>
+                                            <td><?php echo $detail['product_name']?></td>
+                                        </tr>
+
+                                        <?php
+                                            }
+                                        ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="prices-info">
+                                <div class="row">
+                                    <div>
+                                        Total prices: 
+                                    </div>
+                                    <div class="total-prices">
+                                        <strong>  <?php echo $order['total_prices']?> VNĐ</strong>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div>
+                                        Delivery:
+                                    </div>
+                                    <div class="delivery-prices">
+                                        <strong> <?php echo $order['delivery_prices'] ?> VNĐ</strong>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div>
+                                        Discount:
+                                    </div>
+                                    <div class="discount">
+                                        <strong> <?php echo $order['discount'] ?> VNĐ</strong>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div>
+                                        Last prices:
+                                    </div>
+                                    <div class="last-prices">
+                                        <strong> <?php echo $order['total_prices'] + $order['delivery_prices'] - $order['discount']?> VNĐ</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="order-footer">
+                                <span>Bill by letter and email</span>
+                                <button id="export-pdf-btn">
+                                    <i class='bx bxs-file-pdf' ></i>
+                                    View PDF
+                                </button>
+                            </div>
+                        </div>
+                    <?php
+                        }
+                    ?>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    <script src="../assets/js/cart.js"></script>
+    <script src="../assets/js/order.js"></script>
 </body>
 </html>

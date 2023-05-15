@@ -1,4 +1,8 @@
-const token = "c3ccf572-dd29-11ed-921c-de4829400020";
+const prices = {
+    orderPrices: 0,
+    deliveryPrices: 0,
+    discount: 0,
+}
 $(document).ready(function () {
     var deliveryInfo = {
         payment_type_id: 2,
@@ -27,7 +31,9 @@ $(document).ready(function () {
         items: []
     } // thông tin đơn hàng trước khi lên đơn theo tiêu chuẩn của ghn api
     const paymentInfo = { // thông tin thanh toán chứa giá cuối cùng và người thanh toán
-        lastPrices : 0,
+        totalPrices: 0,
+        deliveryPrices : 0,
+        discount: 0,
         customer : $("#full-name").val(),
     }
 
@@ -98,7 +104,6 @@ $(document).ready(function () {
                 $('#normal-delivery').prop('checked', false);
             }
             deliveryInfo = getDeliveryInfo(deliveryInfo);
-            console.log(deliveryInfo);
             $.ajax({
                 url: 'https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/preview',
                 type: 'POST',
@@ -112,10 +117,12 @@ $(document).ready(function () {
                     $.blockUI({ message: '<div class="spinner-border text-light"></div>' , css: {backgroundColor: "transparent", padding: "100px", border: "none"}});
                 },
                 success: function(response) {
+                    prices.deliveryPrices = response.data.fee.main_service;
+                    console.log(prices.deliveryPrices);
                     $("#delivery-price").html(response.data.fee.main_service + " VNĐ");
-                    var sumPrices = parseFloat($("#delivery-price").html().replace("VNĐ", "").trim()) + parseFloat($("#total-prices").html().replace("VNĐ", "").trim())
-                    paymentInfo.lastPrices = sumPrices;
-                    updateLastPrices(sumPrices);
+                    paymentInfo.totalPrices = parseFloat($("#total-prices").html().replace("VNĐ", "").trim());
+                    paymentInfo.deliveryPrices = parseFloat($("#delivery-price").html().replace("VNĐ", "").trim());
+                    updateLastPrices((paymentInfo.totalPrices + paymentInfo.deliveryPrices) / 100 * (100 - paymentInfo.discount));
                 },
                 error: function(xhr, status, error) {
                     console.log(error);
@@ -164,16 +171,37 @@ $(document).ready(function () {
         }
     });
 
-    $("#purchase-button").click((e) => { 
-        e.preventDefault();
-        $.post("../api/payment/createOrder.php", paymentInfo,
+    $("#get-discount-btn").click(() => {
+        console.log({id: $("#discount-code").val().trim()});
+        $.post("../api/discount/getDiscount.php", {discountCode: $("#discount-code").val().trim()},
             function (data, textStatus, jqXHR) {
                 if(data.status) {
-                    window.location.href = "../vnpay/vnpay_pay.php";
+                    paymentInfo.discount = parseFloat(data.data.discount_percentage);
+                    $("#discount").html(data.data.discount_percentage + "%");
+                    updateLastPrices((paymentInfo.totalPrices + paymentInfo.deliveryPrices) / 100 * (100 - paymentInfo.discount));
+                    showSuccessNotifycation("Successfully apply get discount");
+                }
+                else {
+                    showFailedNotifycation("Failed to apply discount");
                 }
             },
             "json"
         );
+    })
+
+    $("#purchase-button").click((e) => { 
+        e.preventDefault();
+        prices.deliveryPrices != 0 ? 
+        $.post("../api/payment/createOrder.php", paymentInfo,
+            function (data, textStatus, jqXHR) {
+                if(data.status) {
+                    prices.deliveryPrices = 0;
+                    window.location.href = "../vnpay/vnpay_pay.php";
+                }
+            },
+            "json"
+        ) :
+        showFailedNotifycation("Please chose delivery method");
     });
 });
 
@@ -185,15 +213,15 @@ function checkDeliveryInfo() {
 }
 
 function getDeliveryInfo(deliveryInfo) {
-    deliveryInfo.to_name = $("#full-name").val();
-    deliveryInfo.to_phone = $("#phone").val();
-    deliveryInfo.to_address = $("#address").val();
-    deliveryInfo.to_ward_code =$("#ward").val().split("-")[0];
-    deliveryInfo.to_district_id = parseInt($("#district").val().split("-")[0]);
+    deliveryInfo.to_name = $("#payment-full-name").val();
+    deliveryInfo.to_phone = $("#payment-phone").val();
+    deliveryInfo.to_address = $("#payment-address").val();
+    deliveryInfo.to_ward_code =$("#payment-ward").val().split("-")[0];
+    deliveryInfo.to_district_id = parseInt($("#payment-district").val().split("-")[0]);
     deliveryInfo.cod_amount = parseFloat($("#last-prices").html().replace("VNĐ", "").trim());
-    deliveryInfo.return_phone = $("#phone").val();
-    deliveryInfo.return_address = $("#address").val();
-    deliveryInfo.return_ward_code = $("#ward").val().split("-")[0];
+    deliveryInfo.return_phone = $("#payment-phone").val();
+    deliveryInfo.return_address = $("#payment-address").val();
+    deliveryInfo.return_ward_code = $("#payment-ward").val().split("-")[0];
    $.get("../api/payment/getOrderProducts.php",
         function (data, textStatus, jqXHR) {
             data.data.forEach(product => {
@@ -206,6 +234,5 @@ function getDeliveryInfo(deliveryInfo) {
 }
 
 function updateLastPrices(value) {
-    console.log(value);
     $("#last-prices").html(value + " VNĐ");
 }

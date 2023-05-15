@@ -1,5 +1,5 @@
-<?php
-    include '../part/header.php';
+<?php    
+    include '../part/home.php';
 ?>
              <div id="cart">
                 <div id="cart-page" class="w-100">
@@ -73,10 +73,6 @@
                             <div>
                                 <p>Total prices:</p>
                                 <p id="last-prices" class="prices-txt"></p>
-                            </div>
-                            <div>
-                                <p>Discount: </p>
-                                <p>no</p>
                             </div>
                         </div>
                         <button id="purchase-button" class="mt-4">Purchase</button>

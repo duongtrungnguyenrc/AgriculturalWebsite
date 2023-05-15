@@ -6,7 +6,7 @@
         'phone' => "",
         'address' => "",
         'email' => "",
-        'userName' => "",
+        'currentUser' => "",
         'password' => "",
     );
     
@@ -53,5 +53,5 @@
     
     include '../../model/Sever.php';
     $sever = new Sever();
-    echo $sever->updateUser($data['userName'], $data['password'], $data['fullName'], $data['birth'], $data['gender'], $data['email'], $data['phone'], $data['address']);
+    echo $sever->updateUser($_POST['currentUser'], $data['password'], $data['fullName'], $data['birth'], $data['gender'], $data['email'], $data['phone'], $data['address']);
 ?>

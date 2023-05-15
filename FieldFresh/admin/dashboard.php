@@ -98,32 +98,59 @@
 				</div>
 				<div class="todo col-12 col-lg-7">
 					<div class="head">
-						<h3>Todos</h3>
+						<h3>User comments</h3>
 						<i class='bx bx-plus' ></i>
 						<i class='bx bx-filter' ></i>
 					</div>
-					<ul class="todo-list">
-						<li class="completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-						<li class="completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-						<li class="not-completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-						<li class="completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-						<li class="not-completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-					</ul>
+					<ul id="comment-list">
+                        <?php
+                            $comments = $sever->getAllComments(true);
+                            foreach($comments as $comment) {
+                                $user = $sever->getUserInfo($comment['user_name']);
+                        ?>
+                        <li class="comment">
+                            <div class="comment-avatar">
+                            <?php echo isset($comment) ? substr(implode(" ", array_reverse(explode(" ", $user['full_name']))), 0, 1) : 'G' ?>
+                            </div>
+                            <div class="comment-content">
+                                <div class="comment-content-top">
+                                    <span class="comment-user">
+									<?php 
+										echo $user['full_name'] . " > " . $comment['product_name'];
+									?>
+									</span>
+                                    <?php
+                                        $currentDate = new DateTime();
+                                        $targetDateObj = DateTime::createFromFormat("Y-m-d H:i:s", $comment['comment_time']);
+                                        if ($targetDateObj !== false) {
+                                            $interval = $currentDate->diff($targetDateObj);
+                                        
+                                            $hours = $interval->h;
+                                            $minutes = $interval->i;
+                                            $seconds = $interval->s;
+                                            
+                                        } else {
+                                            echo "Invalid date format";
+                                        }
+                                        if($minutes <= 0) {
+                                            $time = $seconds . " seconds ago";
+                                        }
+                                        else if($hours <= 0) {
+                                            $time = $minutes . " minutes ago";
+                                        }
+                                        else {
+                                            $time = $comment['comment_time'];
+                                        }
+                                    ?>
+                                    <span class="comment-time"><?php echo $time ?></span>
+                                </div>
+                                <span class="comment-text"><?php echo $comment['comment'] ?></span>
+                            </div>
+                        </li>
+                        <?php
+                            }
+                        ?>
+                    </ul>
 				</div>
 			</div>
 		</main>

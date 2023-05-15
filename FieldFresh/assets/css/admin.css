@@ -1,5 +1,9 @@
 /**/
 
+* {
+	/* font-weight: lighter; */
+}
+
 #clock {
 	margin: 0
 }
@@ -133,7 +137,8 @@
 	color: var(--dark);
 }
 #content main .box-info li .text p {
-	color: var(--dark);	
+	color: var(--dark);
+	font-weight: lighter;	
 }
 
 
@@ -236,6 +241,7 @@
 #content main .table-data div table td {
     min-width: 100px;
     padding: 16px 0;
+	font-weight: lighter;
 }
 
 
@@ -290,7 +296,7 @@
 }
 
 #content main .table-data div table tr td .status.completed {
-	background: var(--blue);
+	background: var(--green);
 }
 #content main .table-data div table tr td .status.process {
 	background: var(--yellow);
@@ -298,7 +304,9 @@
 #content main .table-data div table tr td .status.pending {
 	background: var(--orange);
 }
-
+#content main .table-data div table tr td .status.rejected {
+	background: var(--red);
+}
 
 .chart-frame {
 	height: 350px;
@@ -343,6 +351,56 @@
     gap: 5px;
 }
 
+
+/* comment */
+
+#comments-frame {
+    padding-top: 10px;
+    height: 70%;
+    overflow: scroll;
+}
+
+#comment-list {
+    padding: 0;
+    margin: 0;
+}
+
+
+#comment-list .comment {
+    width: 100%;
+    padding: 10px 0;
+    display: flex;
+    gap: 10px;
+}
+
+#comment-list .comment .comment-avatar{
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: var(--pink);
+    border-radius: 50%;
+    font-size: 1.5rem;
+}
+
+#comment-list .comment .comment-content{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#comment-list .comment .comment-content .comment-content-top{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+#comment-list .comment .comment-content .comment-content-top .comment-time,
+#comment-list .comment .comment-content .comment-text{
+    font-size: 0.9rem;
+    color: var(--gray);
+}
 
 /* notifycation */
 

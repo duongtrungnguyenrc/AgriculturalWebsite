@@ -25,7 +25,7 @@
             </footer>
         </div> 
         <script>
-             function pay() {
+            function pay() {
               window.location.href = "./vnpay_pay.php";
             }
             function querydr() {

@@ -17,7 +17,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Admin</title>
     <link rel="stylesheet" href="../assets/css/general.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Tilt+Neon&display=swap" rel="stylesheet">
@@ -31,6 +31,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
+    <script src="../assets/js/general.js"></script>
     <script src="../assets/js/admin.js"></script>  
 </head>
 <body>
@@ -84,7 +85,33 @@
             <button class="btn d-flex" id="menu-btn"><i class='bx bx-menu'></i></button>
                 <h2 id="clock"></h2>
             <div class="btn-group">
-                <button class="chat-btn me-1"><i class='bx bx-conversation'></i> Chat</button>
-                <button class="share-btn"><i class='bx bx-share-alt' ></i> Share</button>
+            <div id="notification-btn-group">
+                    <button id="notification-btn" class="notifycation-btn me-1"><i class='bx bxs-bell-ring'></i></button>
+                    <span id="notification-tag"><?php echo isset($user) ? count($notifications) : 0 ?></span>
+                </div>
+                <button id="user-btn" class="user-btn" data-bs-toggle="offcanvas" data-bs-target="#user"><?php echo isset($user) ? substr(implode(" ", array_reverse(explode(" ", $user['full_name']))), 0, 1)  : "G" ?></button>
+            </div>
+            <div id="notification-popup" class="notification-popup">
+                <div class="notification-popup-top">
+                    <h5>your Notifications <i class='bx bxs-bell-ring'></i></h5>
+                    <button id="hide-notification-popup"><i class='bx bx-x'></i></button>
+                </div>
+                <div class="notification-popup-body">
+                    <?php
+                    if(isset($notifications)){
+                        foreach($notifications as $notification) {
+                        
+                    ?>
+                    <div class="notification">
+                        <div class="notification-top">
+                            <h6>From: System</h6>
+                        </div>
+                        <span><?php echo $notification['message'] ?></span>
+                    </div>
+                    <?php
+                        }
+                    }
+                    ?>
+                </div>
             </div>
         </nav>

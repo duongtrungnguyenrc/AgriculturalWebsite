@@ -11,11 +11,11 @@
                 <form action="vnpay_create_payment.php" id="frmCreateOrder" method="post">   
                     <div class="form-group mb-3">
                         <label for="amount">Mã hóa đơn</label>
-                        <input class="form-control" id="order-id" name="order-id" type="text" value="<?php echo $_SESSION['order_id'] ?>"/>
+                        <input class="form-control" id="order-id" name="order-id" type="text" value="<?php echo $_SESSION['order_id'] ?>" readonly/>
                     </div>     
                     <div class="form-group mb-3">
                         <label for="amount">Số tiền</label>
-                        <input class="form-control" data-val="true" data-val-number="The field Amount must be a number." data-val-required="The Amount field is required." id="amount" max="100000000" min="1" name="amount" type="number" value="<?php echo (int) $_SESSION['total_money'] ?>" />
+                        <input class="form-control" data-val="true" data-val-number="The field Amount must be a number." data-val-required="The Amount field is required." id="amount" max="100000000" min="1" name="amount" type="number" value="<?php echo (int) $_SESSION['total_money'] ?>"readonly/>
                     </div>
                      <h4>Chọn phương thức thanh toán</h4>
                     <div class="form-group mb-3">
@@ -52,5 +52,16 @@
                 <p>&copy; VNPAY 2020</p>
             </footer>
         </div>  
+        <script>
+            $(window).on('beforeunload', function(e) {
+                if (!window.location.href.includes("vnpay_pay")) {
+                    var deleteId = $("#order-id").val();
+                    var data = { deleteId: deleteId };
+
+                    var blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+                    navigator.sendBeacon("../api/payment/deleteOrder.php", blob);
+                }
+            });
+         </script>
     </body>
 </html>

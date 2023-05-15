@@ -13,6 +13,7 @@ $(document).ready(function () {
             unit:  $(element).find(".unit").html(),
             quantity: $(element).find(".quantity").html(),
         }
+        console.log($(element).find(".unit").html());
         listItem.push(item);
         totalPrices += parseFloat(item.price);
         numberOfProducts++;

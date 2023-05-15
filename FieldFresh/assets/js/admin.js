@@ -68,14 +68,8 @@ $(window).ready(() => {
         $("#content").toggleClass("active");
         $("#menu-btn i").toggleClass("bx-menu");
         $("#menu-btn i").toggleClass("bx-x");
-        if($("#navbar-left label").hasClass("show")){
-            $("#navbar-left label").toggleClass("show");
-        }else {
-            setTimeout(() => {
-                $("#navbar-left label").toggleClass("show");
-            }, 500);
-        }
-    }) 
+        $("#navbar-left label").toggle(500);
+    })
 
     // handle left navigation bar buttons active
     const navItems = $("#navbar-left .navbar-item");
@@ -150,7 +144,7 @@ function initOrder(order) {
     initCol(order.id).appendTo(row);
     initCol(order.user_name).appendTo(row);
     initCol(order.creation_date).appendTo(row);
-    initCol(order.sum_prices).appendTo(row);
+    initCol(parseFloat(order.total_prices) + parseFloat(order.delivery_prices) - parseFloat(order.discount)).appendTo(row);
     initOrderStatusCol(order.status).appendTo(row);
     initDashboardControlCol().appendTo(row);
     row.appendTo($("#orders-table tbody"));
@@ -174,24 +168,36 @@ function ordersControl () {
             if(status.html() == "pending") {
                 setOrderStatus({id : $(element).find("td").eq(0).html(), status: "process"}, index);
                 status.removeClass("pending");
+                sendUpdateNotifycation({orderId: $(element).find("td").eq(0).html(), userName: $(element).find("td").eq(1).html(), message: "Your order has been confirmed!"});
             }
             if(status.html() == "process") {
                 setOrderStatus({id : $(element).find("td").eq(0).html(), status: "completed"}, index);
                 status.removeClass("process");
                 updateRevenue({revenue: $(element).find("td").eq(3).html()});
+                sendUpdateNotifycation({orderId: $(element).find("td").eq(0).html(), userName: $(element).find("td").eq(1).html(), message: "Your order has been completed!"});
             }
         });
-        if(status.html() == "completed"){
+        if(status.html().toLowerCase() == "completed" || status.html().toLowerCase() == "rejected"){
             verifyBtn.prop("disabled", true);
         }
+        if(status.html().toLowerCase() != "pending"){
+            $(element).find("td button.reject").prop("disabled", true);
+        }
         $(element).find("td button.reject").click((e) => { 
-            var del = {
-                id : $(element).find("td").eq(0).val(),
-            }
-            deleteOrder(del, index);
+            setOrderStatus({id : $(element).find("td").eq(0).html(), status: "rejected"}, index);
+            sendUpdateNotifycation({orderId: $(element).find("td").eq(0).html(), userName: $(element).find("td").eq(1).html(), message: "Your order has been rejected!"});
         });
         
     })
+}
+
+function sendUpdateNotifycation(data) {
+    $.post("../api/notification/sendNotification.php", data,
+        function (data, textStatus, jqXHR) {
+            
+        },
+        "json"
+    );
 }
 
 function setOrderStatus(order, index) {
@@ -212,10 +218,10 @@ function updateRevenue(data) {
         function (data, textStatus, jqXHR) {
             var currentWeek = [];
             var lastWeek = [];
-            data.data.slice(0, 8).reverse().forEach(value => {
+            data.data.slice(0, 7).reverse().forEach(value => {
                 currentWeek.push(parseFloat(value.revenue));
             });
-            data.data.slice(8, 15).reverse().forEach(value => {
+            data.data.slice(7, 15).reverse().forEach(value => {
                 lastWeek.push(parseFloat(value.revenue));
             });
             // Cập nhật dữ liệu biểu đồ
@@ -234,10 +240,10 @@ function drawRevenueChart(element) {
         function (data, textStatus, jqXHR) {
             var currentWeek = [];
             var lastWeek = [];
-            data.data.slice(0, 8).reverse().forEach(value => {
+            data.data.slice(0, 7).reverse().forEach(value => {
                 currentWeek.push(parseFloat(value.revenue));
             })
-            data.data.slice(8, 15).reverse().forEach(value => {
+            data.data.slice(7, 15).reverse().forEach(value => {
                 lastWeek.push(parseFloat(value.revenue));
             })
             revenueChart = new Chart(element, {
@@ -279,12 +285,12 @@ function drawRevenueChart(element) {
 
 function drawProfitChart() {
     var myChart = new Chart($("#profit-chart"), {
-        type: 'doughnut',
+        type: 'radar',
         data: {
-            labels: ['Red', 'Blue', 'Yellow'],
+            labels: ['Fruits', 'Vegetables', 'Fishs', 'Meat', 'Milk', 'Rice'],
             datasets: [{
-                label: '# of Votes',
-                data: [12, 19, 3],
+                label: '% of Revenue ',
+                data: [12, 19, 3, 15, 20, 25],
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.2)',
                     'rgba(54, 162, 235, 0.2)',
@@ -315,20 +321,25 @@ function updateTotalRevenue(value) {
     var currRevenue = revenue  + parseFloat(value);
     const revenueITV = setInterval(() => {
         $("#total-sales").html(revenue + " VNĐ");
-        if(revenue < currRevenue - 1000) {
+        if(currRevenue - revenue > 10000) {
+            revenue += 10000;
+        }
+        else if(currRevenue - revenue > 1000) {
             revenue += 1000;
         }
-        else if(revenue < currRevenue - 100) {
+        else if(currRevenue - revenue > 100) {
             revenue += 100;
         }
-        else if(revenue < currRevenue - 10) {
+        else if(currRevenue - revenue > 10){
             revenue += 10;
         }
-        revenue < currRevenue - 10 ? revenue += 1000 : revenue+=1; //buggggggggggggg
+        else {
+            revenue += 1;
+        }
         if(revenue >= currRevenue){
             clearInterval(revenueITV);
         }
-    }, 1);
+    }, 2);
 }
 ////// customers screens //////
 
@@ -342,7 +353,7 @@ function updateTotalRevenue(value) {
 function initUser(user) {
     var row = $('<tr></tr>');
     initDataCol(user.user_name).appendTo(row);
-    initDataCol(user.password).appendTo(row);
+    initDataCol(user.password).appendTo(row).find("input").attr("type", "password");
     initDataCol(user.full_name).appendTo(row);
     initDataCol(user.birth).appendTo(row);
     initDataCol(user.gender).appendTo(row);
@@ -422,7 +433,7 @@ function usersControl () {
             editBtn.find("i").eq(0).toggleClass("bx-save");
             if(editBtn.hasClass("save")){
                 var user = {
-                    userName : inputs.eq(0).val(),
+                    currentUser : inputs.eq(0).val(),
                     password: inputs.eq(1).val(),
                     fullName : inputs.eq(2).val(),
                     birth : inputs.eq(3).val(),
@@ -441,7 +452,7 @@ function usersControl () {
         var deleteBtn = $(row).find("td button.delete");
         deleteBtn.click((e) => { 
             var del = {
-                userName : $(row).find("td").eq(0).html(),
+                userName : $(row).find("td input").eq(0).val(),
             }
             deleteUser(del, index);
         });
@@ -460,6 +471,7 @@ function updateUser(user) {
 }
 
 function deleteUser(data, index) {
+    console.log(data);
     $.post("../api/customer/deleteUser.php", data,
     function (data) {
         if(data.status) {
