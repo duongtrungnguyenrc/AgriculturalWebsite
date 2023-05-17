@@ -34,10 +34,10 @@ $(document).ready(function () {
         totalPrices: 0,
         deliveryPrices : 0,
         discount: 0,
-        customer : $("#full-name").val(),
+        customer : "", 
     }
 
-    $.get("../api/authenticate/loginAuth.php", {},
+    $.get("../api/authenticate/loginAuth.php",
         function (data, textStatus, jqXHR) {
             if(!data.status) {
                 $.ajax({
@@ -48,44 +48,48 @@ $(document).ready(function () {
                     },
                     success: function(response) {
                       response.data.forEach(province => {
-                        $(`<option value="${province.ProvinceID + "-" + province.ProvinceName}">${province.ProvinceName}</option>`).appendTo($("#city"));
+                        $(`<option value="${province.ProvinceID + "-" + province.ProvinceName}">${province.ProvinceName}</option>`).appendTo($("#payment-city"));
                       });
                     }
-                  });
-                  $("#city").change((e) => {
-                    var provinceID = parseInt(e.target.value.split("-")[0]);
-                    $.ajax({
-                      url: 'https://online-gateway.ghn.vn/shiip/public-api/master-data/district',
-                      type: 'GET',
-                      data: {
-                        'province_id' : provinceID,
-                      },
-                      headers: {
-                        'Token': token,
-                      },
-                      success: function(response) {
-                        response.data.forEach(district => {
-                          $(`<option value="${district.DistrictID + "-" + district.DistrictName}">${district.DistrictName}</option>`).appendTo($("#district"));
-                        });
-                      }
+                });
+                $("#payment-city").change((e) => {
+                var provinceID = parseInt(e.target.value.split("-")[0]);
+                $.ajax({
+                    url: 'https://online-gateway.ghn.vn/shiip/public-api/master-data/district',
+                    type: 'GET',
+                    data: {
+                    'province_id' : provinceID,
+                    },
+                    headers: {
+                    'Token': token,
+                    },
+                    success: function(response) {
+                    response.data.forEach(district => {
+                        $(`<option value="${district.DistrictID + "-" + district.DistrictName}">${district.DistrictName}</option>`).appendTo($("#payment-district"));
                     });
-                  })
+                    }
+                });
+                })
                 
-                  $("#district").change((e) => {
-                    var districtID = parseInt(e.target.value.split("-")[0]);
-                    $.ajax({
-                      url: `https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${districtID}`,
-                      type: 'GET',
-                      headers: {
-                        'Token': token,
-                      },
-                      success: function(response) {
-                        response.data.forEach(ward => {
-                          $(`<option value="${ward.WardCode + "-" + ward.WardName}">${ward.WardName}</option>`).appendTo($("#ward"));
-                        });
-                      }
+                $("#payment-district").change((e) => {
+                var districtID = parseInt(e.target.value.split("-")[0]);
+                $.ajax({
+                    url: `https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${districtID}`,
+                    type: 'GET',
+                    headers: {
+                    'Token': token,
+                    },
+                    success: function(response) {
+                    response.data.forEach(ward => {
+                        $(`<option value="${ward.WardCode + "-" + ward.WardName}">${ward.WardName}</option>`).appendTo($("#payment-ward"));
                     });
-                  })
+                    }
+                });
+                })
+                paymentInfo.customer = null;
+            }
+            else {
+                paymentInfo.customer = data.customerId;
             }
         },
         "json"
@@ -118,7 +122,6 @@ $(document).ready(function () {
                 },
                 success: function(response) {
                     prices.deliveryPrices = response.data.fee.main_service;
-                    console.log(prices.deliveryPrices);
                     $("#delivery-price").html(response.data.fee.main_service + " VNĐ");
                     paymentInfo.totalPrices = parseFloat($("#total-prices").html().replace("VNĐ", "").trim());
                     paymentInfo.deliveryPrices = parseFloat($("#delivery-price").html().replace("VNĐ", "").trim());
@@ -131,8 +134,7 @@ $(document).ready(function () {
                 complete: function() {
                     $.unblockUI();
                 }
-            });
-                
+            });               
         }
     });
     
@@ -172,17 +174,25 @@ $(document).ready(function () {
     });
 
     $("#get-discount-btn").click(() => {
-        console.log({id: $("#discount-code").val().trim()});
         $.post("../api/discount/getDiscount.php", {discountCode: $("#discount-code").val().trim()},
             function (data, textStatus, jqXHR) {
                 if(data.status) {
-                    paymentInfo.discount = parseFloat(data.data.discount_percentage);
-                    $("#discount").html(data.data.discount_percentage + "%");
-                    updateLastPrices((paymentInfo.totalPrices + paymentInfo.deliveryPrices) / 100 * (100 - paymentInfo.discount));
-                    showSuccessNotifycation("Successfully apply get discount");
+                    var currentDate = new Date();
+                    var validDate = new Date(data.data.valid_date);
+                    var invalidDate = new Date(data.data.invalid_date);
+                    console.log(validDate + currentDate  + invalidDate);
+                    if(validDate <= currentDate && currentDate < invalidDate) {
+                        paymentInfo.discount = parseFloat(data.data.discount_percentage);
+                        $("#discount").html(data.data.discount_percentage + "%");
+                        updateLastPrices((paymentInfo.totalPrices + paymentInfo.deliveryPrices) / 100 * (100 - paymentInfo.discount));
+                        showSuccessNotifycation("Successfully apply discount code");
+                    }
+                    else {
+                        showFailedNotifycation("Your discount code does not exist or has expired");
+                    }
                 }
                 else {
-                    showFailedNotifycation("Failed to apply discount");
+                    showFailedNotifycation("Discount code does not exists or has expired");
                 }
             },
             "json"
@@ -191,22 +201,33 @@ $(document).ready(function () {
 
     $("#purchase-button").click((e) => { 
         e.preventDefault();
-        prices.deliveryPrices != 0 ? 
-        $.post("../api/payment/createOrder.php", paymentInfo,
-            function (data, textStatus, jqXHR) {
-                if(data.status) {
-                    prices.deliveryPrices = 0;
-                    window.location.href = "../vnpay/vnpay_pay.php";
-                }
-            },
-            "json"
-        ) :
-        showFailedNotifycation("Please chose delivery method");
+        if(prices.deliveryPrices){
+            if(paymentInfo.customer === "" || paymentInfo.customer == null){
+                paymentInfo.name = $("#payment-full-name").val();
+                paymentInfo.birth = $("#payment-birth").val();
+                paymentInfo.gender = $("#payment-gender").val();
+                paymentInfo.phone =  $("#payment-phone").val();
+                paymentInfo.email = $("#payment-email").val();
+                paymentInfo.address = $("#payment-city").val() + "," + $("#payment-district").val() + "," + $("#payment-ward").val() + "," + $("#payment-address").val();
+            }
+            $.post("../api/payment/createOrder.php", paymentInfo,
+                function (data, textStatus, jqXHR) {
+                    if(data.status) {
+                        prices.deliveryPrices = 0;
+                        window.location.href = "../vnpay/vnpay_pay.php";
+                    }
+                },
+                "json"
+            ) 
+        }
+        else {
+            showFailedNotifycation("Please chose delivery method");
+        }
     });
 });
 
 function checkDeliveryInfo() {
-    if($("#full-name").val() == "" || $("#phone").val() == "" || $("#city").val() == "" || $("#district").val() == "" || $("#ward").val() == "" || ("#address").val == "") {
+    if($("#payment-full-name").val() == "" || $("#payment-phone").val() == "" || $("#payment-city").val() == "" || $("#payment-district").val() == "" || $("#payment-ward").val() == "" || ("#payment-address").val == "") {
         return false;
     }
     return true;

@@ -1,10 +1,10 @@
 <?php
     include '../part/admin.php';
-	include '../model/Sever.php';
 
 	$sever = new Sever();
 	$newOrderQuantity = $sever->getNewOrdersQuantity();
 	$orderQuantity = $sever->getOrdersQuantity();
+	$userQuantity = $sever->getUsersQuantity();
 	$totalSales = $sever->getSumRevenue();
 ?>
 
@@ -16,18 +16,11 @@
 						<li>
 							<a href="#">Admin</a>
 						</li>
-						<li><i class='bx bx-chevron-right' ></i></li>
+						<li><i class='bx bx-chevron-right'></i></li>
 						<li>
 							<a class="active" href="#">Dashboard</a>
 						</li>
 					</ul>
-				</div>
-				<div class="btn-upload">
-					<i class='bx bxs-cloud-upload' ></i>
-					<label for="file-input" class="chose-file">
-						Chose file
-					</label>
-					<input id="file-input" type="file" class="text" accept=".xlsx">
 				</div>
 			</div>
 
@@ -40,10 +33,17 @@
 					</span>
 				</li>
 				<li>
-					<i class='bx bxs-group' ></i>
+					<i class='bx bx-package'></i>
 					<span class="text">
 						<h3><?php echo $orderQuantity['quantity']." orders" ?></h3>
 						<p>Orders</p>
+					</span>
+				</li>
+				<li>
+					<i class='bx bxs-group' ></i>
+					<span class="text">
+						<h3><?php echo $userQuantity['quantity']." customers" ?></h3>
+						<p>Customers</p>
 					</span>
 				</li>
 				<li>
@@ -87,6 +87,62 @@
 				</div>
 			</div>
 
+			<div class="table-data">
+				<div class="order col-12 col-lg-6" style="height: 350px">
+					<div class="head">
+						<h3>Control</h3>
+					</div>
+					<div class="col-12 g-3 ">
+						<div class="col-12 d-flex mb-2">
+							<input id="notification-message" type="text" class="form-control me-2" placeholder="Message">
+							<input id="notification-for" type="text" class="form-control" placeholder="For">
+						</div>
+						<button id="send-notification-btn" class="btn btn-success col-12">Send notification</button>
+					</div>
+					<div class="col-12 mt-3">
+						<div class="col-12 d-flex mb-2">
+							<input id="discount-valid-date" type="date" class="form-control me-2">
+							<input id="discount-invalid-date" type="date" class="form-control">
+						</div>
+						<div class="col-12 d-flex mb-2">
+							<input id="discount-code" type="text" class="form-control me-2" placeholder="Discount code">
+							<input id="discount-percentage" type="text" class="form-control" placeholder="Discount percentage">
+						</div>
+						<button id="create-discount-btn" class="btn btn-primary col-12">Create discount</button>
+					</div>
+				</div>
+				<div class="revenue-statistics col-12 col-lg-6 chart-frame" style="height: 350px">
+					<div class="head">
+						<h3>Discounts</h3>
+					</div>
+					<table id="discount-table" class="col-12">
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>Valid date</th>
+								<th>Invalid date</th>
+								<th>Proportion</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php
+								$discounts = $sever->getAllDiscounts(true);
+								foreach ($discounts as $key => $discount) {							
+							?>
+							<tr>
+								<td><?php echo $discount['id']?></td>
+								<td><?php echo $discount['valid_date']?></td>
+								<td><?php echo $discount['invalid_date']?></td>
+								<td><?php echo $discount['discount_percentage']?>%</td>
+							</tr>
+							<?php
+							}
+							?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
 			<div class="table-data">				
 				<div class="revenue-statistics col-12 col-lg-5 chart-frame">
 					<div class="head">
@@ -106,17 +162,17 @@
                         <?php
                             $comments = $sever->getAllComments(true);
                             foreach($comments as $comment) {
-                                $user = $sever->getUserInfo($comment['user_name']);
+                                $user = $sever->getCustomerByUser($comment['user_name']);
                         ?>
                         <li class="comment">
                             <div class="comment-avatar">
-                            <?php echo isset($comment) ? substr(implode(" ", array_reverse(explode(" ", $user['full_name']))), 0, 1) : 'G' ?>
+                            <?php echo isset($comment) ? substr(implode(" ", array_reverse(explode(" ", $user['name']))), 0, 1) : 'G' ?>
                             </div>
                             <div class="comment-content">
                                 <div class="comment-content-top">
                                     <span class="comment-user">
 									<?php 
-										echo $user['full_name'] . " > " . $comment['product_name'];
+										echo $user['name'] . " > " . $comment['product_name'];
 									?>
 									</span>
                                     <?php

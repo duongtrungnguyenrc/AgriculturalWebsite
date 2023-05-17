@@ -128,6 +128,10 @@
 	color: var(--yellow);
 }
 #content main .box-info li:nth-child(3) .bx {
+	background: var(--light-grey);
+}
+
+#content main .box-info li:nth-child(4) .bx {
 	background: var(--light-yellow);
 	color: var(--orange);
 }

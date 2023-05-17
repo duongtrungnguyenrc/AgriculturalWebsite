@@ -95,7 +95,7 @@ $(document).ready(function () {
       function (data) {
         if(data.status) {
           showSuccessNotifycation(data.description);
-          data.role != 'admin' ? window.location.href = "../home/home.php" : window.location.href = "../admin/dashboard.php";
+          data.role != 'admin' ? window.location.href = "../home/" : window.location.href = "../admin/dashboard.php";
         }
         else {
           showFailedNotifycation(data.description);

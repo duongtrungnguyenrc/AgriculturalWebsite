@@ -5,14 +5,14 @@
         $login = false;
     }
     else {
-
         $login = $_SESSION['login'];
     }
     include '../model/sever.php';
     $sever = new Sever();
     if(isset($_SESSION['userName']) && $_SESSION['userName'] != null){
-        $user = $sever->getUserInfo($_SESSION['userName']);
-        $notifications = $sever->getNotificationsByUser($user['user_name'], true);
+        $customer = $sever->getCustomerInfo($_SESSION['customerId']);
+        $user = $sever->getUserInfo($_SESSION['customerId']);
+        $notifications = $sever->getNotificationsByUser($_SESSION['userName'], true);
     }
 ?>
 
@@ -60,10 +60,10 @@
         <div class="offcanvas-body">
             <div id="user-infomation" class="w-100 h-100">
                 <div id="user-img-group">
-                    <div id="avata"><?php echo isset($user) ? substr(implode(" ", array_reverse(explode(" ", $user['full_name']))), 0, 1) : 'G' ?></div>
+                    <div id="avata"><?php echo isset($customer) ? substr(implode(" ", array_reverse(explode(" ", $customer['name']))), 0, 1) : 'G' ?></div>
                 </div>
                 <div id="user-name-group" class="text-center">
-                    <h2><?php echo isset($user) ? $user['full_name'] : '' ?></h2>
+                    <h2><?php echo isset($customer) ? $customer['name'] : '' ?></h2>
                 </div>
                 <div id="img-control-group" class="d-flex">
                     <button id="save-user-info-btn" type="button" class="btn btn-primary" disabled>Save</button>
@@ -81,42 +81,42 @@
                         </div>
                         <div class="input-group">
                             <span class="input-group-text">Name:</span>
-                            <input type="text" name="full-name" id="full-name"  class="form-control" value="<?php echo isset($user) ? $user['full_name'] : '' ?>" disabled>
+                            <input type="text" name="full-name" id="full-name"  class="form-control" value="<?php echo isset($customer) ? $customer['name'] : '' ?>" disabled>
                         </div>
                         <div class="input-group">
                             <span class="input-group-text">Email:</span>
-                            <input type="text" name="email" id="email" class="form-control" value="<?php echo isset($user) ? $user['email'] : '' ?>" disabled>
+                            <input type="text" name="email" id="email" class="form-control" value="<?php echo isset($customer) ? $customer['email'] : '' ?>" disabled>
                         </div>
                         <div class="input-group">
                             <span class="input-group-text">Birth:</span>
                             <div>
-                                <input type="date" name="birth" id="birth" class="form-control" value="<?php echo isset($user) ? $user['birth'] : '' ?>" disabled>
+                                <input type="date" name="birth" id="birth" class="form-control" value="<?php echo isset($customer) ? $customer['birth'] : '' ?>" disabled>
                             </div>
                         </div>
                         <div class="input-group">
                             <span class="input-group-text">Gender:</span>
                             <div id="gender-control">
                                 <select name="gender" id="gender" class="form-select w-100" disabled>
-                                    <option value="Male" <?php echo isset($user) && strcasecmp($user['gender'], "male") ? "checked" : "" ?>>Male</option>
-                                    <option value="Female" <?php echo isset($user) && strcasecmp($user['gender'], "female") ? "checked" : "" ?>>Female</option>
+                                    <option value="Male" <?php echo isset($customer) && strcasecmp($customer['gender'], "male") ? "checked" : "" ?>>Male</option>
+                                    <option value="Female" <?php echo isset($customer) && strcasecmp($customer['gender'], "female") ? "checked" : "" ?>>Female</option>
                                 </select>
                             </div>
                         </div>
                         <div class="input-group">
                             <span class="input-group-text">Phone:</span>
-                            <input type="text" name="phone" id="phone" class="form-control" value="<?php echo isset($user) ? $user['phone'] : '' ?>" disabled>
+                            <input type="text" name="phone" id="phone" class="form-control" value="<?php echo isset($customer) ? $customer['phone'] : '' ?>" disabled>
                         </div>
                         <div class="input-group">
                             <span class="input-group-text">Adress:</span>
                             <div class="d-flex flex-column" id="address-group">
                                 <select class="form-select" name="rg-priovince" id="rg-province" disabled>
-                                    <option value="<?php echo isset($user) ?  explode(",", $user['address'])[0] : '' ?>" selected><?php echo isset($user) ?  preg_replace("/[0-9-]/", "", explode(",", $user['address'])[0]) : '' ?></option>
+                                    <option value="<?php echo isset($customer) ?  explode(",", $customer['address'])[0] : '' ?>" selected><?php echo isset($customer) ?  preg_replace("/[0-9-]/", "", explode(",", $customer['address'])[0]) : '' ?></option>
                                 </select>
                                 <select class="form-select" name="rg-district" id="rg-district" disabled>
-                                    <option value="<?php echo isset($user) ?  explode(",", $user['address'])[1] : '' ?>" selected><?php echo isset($user) ?  preg_replace("/[0-9-]/", "", explode(",", $user['address'])[1]) : '' ?></option>
+                                    <option value="<?php echo isset($customer) ?  explode(",", $customer['address'])[1] : '' ?>" selected><?php echo isset($customer) ?  preg_replace("/[0-9-]/", "", explode(",", $customer['address'])[1]) : '' ?></option>
                                 </select>
                                 <select class="form-select" name="rg-ward" id="rg-ward" disabled>
-                                <option value="<?php  echo isset($user) ?  explode(",", $user['address'])[2] : '' ?>" selected><?php echo isset($user) ?  preg_replace("/[0-9-]/", "", explode(",", $user['address'])[2]) : '' ?></option>
+                                <option value="<?php  echo isset($customer) ?  explode(",", $customer['address'])[2] : '' ?>" selected><?php echo isset($customer) ?  preg_replace("/[0-9-]/", "", explode(",", $customer['address'])[2]) : '' ?></option>
                                 </select>
                             </div>
                         </div>
@@ -132,7 +132,7 @@
         </div>
         <ul id="navbar-navigation" class="list-unstyled">
             <li class="navbar-item">
-                <a class="nav-btn" href="./home.php">
+                <a class="nav-btn" href="../home/">
                     <i class='bx bx-store'></i>
                     <label for="">Store</label>
                 </a>
@@ -201,7 +201,7 @@
                     <button id="notification-btn" class="notifycation-btn me-1"><i class='bx bxs-bell-ring'></i></button>
                     <span id="notification-tag"><?php echo isset($notifications) ? count($notifications) : '0' ?></span>
                 </div>
-                <button id="user-btn" class="user-btn" data-bs-toggle="offcanvas" data-bs-target="#user"><?php echo isset($user) ? substr(implode(" ", array_reverse(explode(" ", $user['full_name']))), 0, 1)  : "G" ?></button>
+                <button id="user-btn" class="user-btn" data-bs-toggle="offcanvas" data-bs-target="#user"><?php echo isset($customer) ? substr(implode(" ", array_reverse(explode(" ", $customer['name']))), 0, 1)  : "G" ?></button>
             </div>
             <div id="notification-popup" class="notification-popup">
                 <div class="notification-popup-top">

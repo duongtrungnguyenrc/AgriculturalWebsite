@@ -89,18 +89,39 @@ $(window).ready(() => {
                 window.location = "../login/login.php";
             }
         );
+    });
+
+    $("#send-notification-btn").click((e) => {
+        sendUpdateNotifycation({userName: $("#notification-for").val(), message: $("#notification-message").val()});
+        $("#notification-for").val("");
+        $("#notification-message").val("");
+    })
+
+    $("#create-discount-btn").click((e) => {
+        const data = {
+            validDate: $("#discount-valid-date").val(),
+            invalidDate: $("#discount-invalid-date").val(),
+            discountCode: $("#discount-code").val().toUpperCase(),
+            discountPercentage: $("#discount-percentage").val(),
+        }
+        $.post("../api/discount/createDiscount.php", data,
+            function (data, textStatus, jqXHR) {
+                if(data.status) {
+                    $("#discount-valid-date").val("");
+                    $("#discount-invalid-date").val("");
+                    $("#discount-code").val("");
+                    $("#discount-percentage").val("");
+                    showSuccessNotifycation(data.description);
+                }
+                else {
+                    showFailedNotifycation(data.description);
+                }
+            },
+            "json"
+        );
     })
 
 })
-
-function initControlCol() {
-    var control = $('<td class="item-control-group"></td>');
-    var editBtn = $('<button class="btn btn-primary edit"><i class="bx bx-pencil"></i></button>');
-    var deleteBtn = $('<button class="btn btn-danger delete"><i class="bx bx-trash" ></i></button>');
-    editBtn.appendTo(control);
-    deleteBtn.appendTo(control);
-    return control;
-}
 
 function deleteRow(index) {
     var rows = $(".table-data tbody tr");
@@ -111,42 +132,19 @@ function deleteRow(index) {
     })
 }
 
-function initDataCol(value) {
-    var col = $('<td></td>')
-    $(`<input type="text" value="${value}">`).appendTo(col);
-    return col;
-}
-
-function initCol(value) {
-    return $(`<td>${value}</td>`);
-}
-
-
 ////// dashboard screen //////
-
-function initDashboardControlCol() {
-    var control = $('<td></td>');
-    var verifyBtn = $('<button class="btn btn-primary me-1 verify"><i class="bx bx-check"></i></button>');
-    var rejectBtn = $('<button class="btn btn-danger reject"><i class="bx bx-x" ></i></button>');
-    verifyBtn.appendTo(control);
-    rejectBtn.appendTo(control);
-    return control;
-}
-
-function initOrderStatusCol(value){
-    var col = $('<td></td>');
-    $(`<span class="status ${value}">${value}</span>`).appendTo(col);
-    return col;
-}
-
-function initOrder(order) {
-    var row = $('<tr></tr>');
-    initCol(order.id).appendTo(row);
-    initCol(order.user_name).appendTo(row);
-    initCol(order.creation_date).appendTo(row);
-    initCol(parseFloat(order.total_prices) + parseFloat(order.delivery_prices) - parseFloat(order.discount)).appendTo(row);
-    initOrderStatusCol(order.status).appendTo(row);
-    initDashboardControlCol().appendTo(row);
+function initOrderRow(order) {
+    var row = $(`<tr>
+                    <td>${order.id}</td>
+                    <td>${order.customer_id}</td>
+                    <td>${order.creation_date}</td>
+                    <td>${parseFloat(order.total_prices) + parseFloat(order.delivery_prices) - parseFloat(order.discount)}</td>
+                    <td><span class="status ${order.status}">${order.status}</span></td>
+                    <td>
+                        <button class="btn btn-primary verify"><i class="bx bx-check"></i></button>
+                        <button class="btn btn-danger reject"><i class="bx bx-x" ></i></button>
+                    </td>
+                </tr>`);
     row.appendTo($("#orders-table tbody"));
 }
 
@@ -154,7 +152,7 @@ function displayOrder() {
     $.get("../api/dashboard/getAllOrders.php", (data) => {
         var orders = data.data;
         orders.forEach((order) => {
-            initOrder(order);
+            initOrderRow(order);
         })
     }, "json")
 }
@@ -168,13 +166,13 @@ function ordersControl () {
             if(status.html() == "pending") {
                 setOrderStatus({id : $(element).find("td").eq(0).html(), status: "process"}, index);
                 status.removeClass("pending");
-                sendUpdateNotifycation({orderId: $(element).find("td").eq(0).html(), userName: $(element).find("td").eq(1).html(), message: "Your order has been confirmed!"});
+                sendUpdateNotifycation({orderId: $(element).find("td").eq(0).html(), customerId: $(element).find("td").eq(1).html().trim(), message: `Your order id ${$(element).find("td").eq(0).html()} has been confirmed!`});
             }
             if(status.html() == "process") {
                 setOrderStatus({id : $(element).find("td").eq(0).html(), status: "completed"}, index);
                 status.removeClass("process");
                 updateRevenue({revenue: $(element).find("td").eq(3).html()});
-                sendUpdateNotifycation({orderId: $(element).find("td").eq(0).html(), userName: $(element).find("td").eq(1).html(), message: "Your order has been completed!"});
+                sendUpdateNotifycation({orderId: $(element).find("td").eq(0).html(), customerId: $(element).find("td").eq(1).html().trim(), message: `Your order id ${$(element).find("td").eq(0).html()} has been completed!`});
             }
         });
         if(status.html().toLowerCase() == "completed" || status.html().toLowerCase() == "rejected"){
@@ -194,7 +192,12 @@ function ordersControl () {
 function sendUpdateNotifycation(data) {
     $.post("../api/notification/sendNotification.php", data,
         function (data, textStatus, jqXHR) {
-            
+            if(data.status) {
+                showSuccessNotifycation(data.description);
+            }
+            else {
+                showFailedNotifycation(data.description);
+            }
         },
         "json"
     );
@@ -207,6 +210,14 @@ function setOrderStatus(order, index) {
             if(index == i) {
                 $(element).find("td span").addClass(order.status);
                 $(element).find("td span").html(order.status);
+            }
+            var verifyBtn = $(element).find("td button.verify");
+            var status = $(element).find("td span");
+            if(status.html().toLowerCase() == "completed" || status.html().toLowerCase() == "rejected"){
+                verifyBtn.prop("disabled", true);
+            }
+            if(status.html().toLowerCase() != "pending"){
+                $(element).find("td button.reject").prop("disabled", true);
             }
         })
     })
@@ -238,13 +249,13 @@ function updateRevenue(data) {
 function drawRevenueChart(element) {
     $.get("../api/revenue/getRevenueStatistics.php",
         function (data, textStatus, jqXHR) {
-            var currentWeek = [];
-            var lastWeek = [];
+            var currentWeekRevenue = [];
+            var lastWeekRevenue = []
             data.data.slice(0, 7).reverse().forEach(value => {
-                currentWeek.push(parseFloat(value.revenue));
+                currentWeekRevenue.push(parseFloat(value.revenue));
             })
             data.data.slice(7, 15).reverse().forEach(value => {
-                lastWeek.push(parseFloat(value.revenue));
+                lastWeekRevenue.push(parseFloat(value.revenue));
             })
             revenueChart = new Chart(element, {
                 type: 'line',
@@ -252,12 +263,12 @@ function drawRevenueChart(element) {
                 labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
                 datasets: [{
                     label: 'Last week',
-                    data: lastWeek,
+                    data: lastWeekRevenue,
                     borderColor: '#DB504A',
                     fill: false
                 }, {
                     label: 'Current week',
-                    data: currentWeek,
+                    data: currentWeekRevenue,
                     borderColor: '#3C91E6',
                     fill: false
                 }]
@@ -287,10 +298,10 @@ function drawProfitChart() {
     var myChart = new Chart($("#profit-chart"), {
         type: 'radar',
         data: {
-            labels: ['Fruits', 'Vegetables', 'Fishs', 'Meat', 'Milk', 'Rice'],
+            labels: ['Fruits', 'Vegetables', 'Fish', 'Meat', 'Rice'],
             datasets: [{
                 label: '% of Revenue ',
-                data: [12, 19, 3, 15, 20, 25],
+                data: [30, 19, 25, 15, 10],
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.2)',
                     'rgba(54, 162, 235, 0.2)',
@@ -351,16 +362,20 @@ function updateTotalRevenue(value) {
  */
 
 function initUser(user) {
-    var row = $('<tr></tr>');
-    initDataCol(user.user_name).appendTo(row);
-    initDataCol(user.password).appendTo(row).find("input").attr("type", "password");
-    initDataCol(user.full_name).appendTo(row);
-    initDataCol(user.birth).appendTo(row);
-    initDataCol(user.gender).appendTo(row);
-    initDataCol(user.email).appendTo(row);
-    initDataCol(user.phone).appendTo(row);
-    initDataCol(user.address).appendTo(row);
-    initControlCol().appendTo(row);
+    var row = $(`<tr>
+                    <td><input type="text" value="${user.user_name}"></td>
+                    <td><input type="password" value="${user.password}"></td>
+                    <td><input type="text" value="${user.name}"></td>
+                    <td><input type="text" value="${user.birth}"></td>
+                    <td><input type="text" value="${user.gender}"></td>
+                    <td><input type="text" value="${user.email}"></td>
+                    <td><input type="text" value="${user.phone}"></td>
+                    <td><input type="text" value="${user.address}"></td>
+                    <td>
+                        <button class="btn btn-primary edit"><i class="bx bx-pencil"></i></button>
+                        <button class="btn btn-danger delete"><i class="bx bx-trash" ></i></button>
+                    </td>
+                </tr>`);
     row.appendTo($("#users-table tbody"));
 }
 
@@ -487,9 +502,13 @@ function deleteUser(data, index) {
 ////// types screens //////
 
 function initType(type) {
-    var row = $('<tr></tr>');
-    initDataCol(type.type).appendTo(row);
-    initControlCol().appendTo(row);
+    var row = $(`<tr>
+                    <td><input type="text" value="${type.type}"></td>
+                    <td>
+                        <button class="btn btn-primary edit"><i class="bx bx-pencil"></i></button>
+                        <button class="btn btn-danger delete"><i class="bx bx-trash" ></i></button>
+                    </td>
+                </tr>`);
     row.appendTo($("#types-table tbody"));
 }
 
@@ -582,23 +601,20 @@ function deleteType(data, index) {
 
 ////// products screen //////
 
-function initImgCol(value) {
-    var col =  $('<td></td>')
-    $(`<img src="${value}"></img>`).appendTo(col);
-    return col;
-}
-
 function initProduct(product) {
-    var row = $('<tr></tr>');
-    Object.keys(product).forEach(function(key) {
-        if(key != 'image') {
-            initDataCol(product[key]).appendTo(row);
-        }
-        else {
-            initImgCol(product['image']).appendTo(row);
-        }
-      });
-    initControlCol().appendTo(row);
+    var row = $(`<tr>
+                    <td><input type="text" value="${product.type}"></td>
+                    <td><input type="text" value="${product.product_name}"></td>
+                    <td><input type="text" value="${product.base_price}"></td>
+                    <td><input type="text" value="${product.sale_price}"></td>
+                    <td><input type="text" value="${product.unit}"></td>
+                    <td><input type="text" value="${product.description}"></td>
+                    <td><img src="${product.image}"></img></td>
+                    <td>
+                        <button class="btn btn-primary edit"><i class="bx bx-pencil"></i></button>
+                        <button class="btn btn-danger delete"><i class="bx bx-trash" ></i></button>
+                    </td>
+                </tr>`);
     row.appendTo($("#products-table tbody"));
 }
 
@@ -666,12 +682,12 @@ function productsControl () {
             if (editBtn.hasClass("save")) {
                 const product = {
                     type : inputs.eq(0).val(),
-                    productName: inputs.eq(1).val(),
+                    name: inputs.eq(1).val(),
                     basePrice : inputs.eq(2).val(),
                     salePrice : inputs.eq(3).val(),
                     unit : inputs.eq(4).val(),
                     description : inputs.eq(5).val(),
-                    img : img,
+                    image : img,
                 }
                 updateProduct(product);
                 editBtn.removeClass("save");
@@ -692,7 +708,7 @@ function updateProduct(data) {
         if(data.status){
             showSuccessNotifycation(data.description);
         } else {
-            showSuccessNotifycation(data.description);
+            showFailedNotifycation(data.description);
         }
     }, "json");
 }
@@ -703,9 +719,9 @@ function deleteProduct(data, index) {
     (data) => {
         if(data.status) {
             deleteRow(index);
-            showSuccessNotification(data.description);
+            showSuccessNotifycation(data.description);
         } else {
-            showFailedNotification(data.description);
+            showFailedNotifycation(data.description);
         }
     }, "json")
     $.unblockUI();

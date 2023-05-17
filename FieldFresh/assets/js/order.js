@@ -27,13 +27,23 @@ $(document).ready(function () {
             hideOrderByFilter("rejected");         
         }
     });
+
+    $("#apply-filter-btn").click((e) => {
+        if($("#filter-input").val()) {
+            hideOrderById($("#filter-input").val());
+        }
+    })
+    $("#clear-filter-btn").click(() => {
+        $("#filter-input").val("");
+        $("#order-list .order").show(100);
+    })
 });
 
 function loadInvoice(orderId) {
     $.post("../api/order/getOrderById.php", {id: orderId},
         function (data, textStatus, jqXHR) {
             var order = data.order;
-            var user = data.user;
+            var customer = data.customer;
             var detail = data.detail;
             var orderName = "";
 
@@ -49,24 +59,27 @@ function loadInvoice(orderId) {
             $(".detail-top .order-id").html("Order id: " + order.id);
             $(".detail-top .order-name").html(orderName);
 
-            orderModel.find(".avatar").html(Array.from(user.full_name.split(" ").reverse()[0])[0]);
-            orderModel.find(".customer-name").html(user.full_name);
+            orderModel.find(".avatar").html(Array.from(customer.name.split(" ").reverse()[0])[0]);
+            orderModel.find(".customer-name").html(customer.name);
             orderModel.find(".order-id").html("Order id: " + order.id);
             orderModel.find(".date-order").html("Date: " + order.creation_date)
-            orderModel.find(".to-name").html(user.full_name);
-            orderModel.find(".to-address").html(user.address.replace(/[0-9-]/g, "").replace(/,/g, " - ").trim());
+            orderModel.find(".to-name").html(customer.name);
+            orderModel.find(".to-address").html(customer.address.replace(/[0-9-]/g, "").replace(/,/g, " - ").trim());
             if(orderModel.find("tbody").has("tr").length > 0) {
                 orderModel.find("tbody").empty();
             }
             detail.forEach(element => {
-                var row = $(`<tr></tr>`);
-                row.append($(`<td>${"x" + element.quantity+ " " + element.unit}</td>`));
-                row.append($(`<td>${element.price}</td>`));
-                row.append(`<td>${element.product_name}</td>`);
+                var row = $(`<tr>
+                                <td>${element.quantity}</td>
+                                <td>${element.unit}</td>
+                                <td>${element.price}</td>
+                                <td>${element.product_name}</td>
+                            </tr>`);
                 row.appendTo(orderModel.find("tbody"));
             });
             orderModel.find(".total-prices strong").html(parseFloat(order.total_prices));
             orderModel.find(".delivery-prices strong").html(parseFloat(order.delivery_prices));
+            orderModel.find(".discount strong").html(parseFloat(order.discount));
             orderModel.find(".last-prices strong").html(parseFloat(order.total_prices) + parseFloat(order.delivery_prices) - parseFloat(order.discount));
         },
         "json"
@@ -76,6 +89,17 @@ function loadInvoice(orderId) {
 function hideOrderByFilter(element) {
     $("#order-list .order").each((index, value) => {
         if($(value).find(".status").html().trim() === element) {
+            $(value).show(100);
+        }
+        else {
+            $(value).hide(100);
+        }
+    })
+}
+
+function hideOrderById(element) {
+    $("#order-list .order").each((index, value) => {
+        if($(value).find(".order-id").html().split(":")[1].trim() === element) {
             $(value).show(100);
         }
         else {

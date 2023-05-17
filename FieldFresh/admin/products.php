@@ -1,6 +1,5 @@
 <?php
     include '../part/admin.php';
-	include '../model/Sever.php';
 ?>
 
 		<main>

@@ -9,7 +9,7 @@
                         </div>
                         <div class="filter-form">
                             <div class="form-group">
-                                <select class="form-select" name="" id="filter-slt">
+                                <select id="filter-slt" class="form-select">
                                     <option value="all">All orders</option>
                                     <option value="pending">Pending orders</option>
                                     <option value="processing">Processing orders</option>
@@ -18,14 +18,16 @@
                                 </select>
                             </div>
                             <div class="form-group filter-group">
-                                <input type="text" class="form-control">
-                                <button class="btn btn-primary">Apply</button>
+                                <input id="filter-input" type="text" class="form-control" placeholder="Order id">
+                                <button id="apply-filter-btn"><i class='bx bxs-filter-alt'></i></button>
+                                <button id="clear-filter-btn">clear</button>
                             </div>
                         </div>
                     </div>
                     <div id="order-list">
                         <?php
-                            $orders = $sever->getOrdersByUser($_SESSION['userName'], true);
+                        if(isset($_SESSION['customerId'])){
+                            $orders = $sever->getOrdersByCustomer($_SESSION['customerId'], true);
                             if(isset($orders)){
                             foreach($orders as $key => $order) {
                                 $details = $sever->getOrderDetail($order['id']);
@@ -55,6 +57,7 @@
                             </div>
                         </div>
                         <?php
+                                }
                             }
                         }
                         ?>
@@ -65,7 +68,12 @@
                         <div class="heading">
                             <h1 class="order-id">
                                 <?php
-                                    echo isset($orders) && count($orders) > 0 ? "Order id: " . $orders[0]['id'] : "You don't have any orders yet!";
+                                    if($login){
+                                        echo isset($orders) && count($orders) > 0 ? "Order id: " . $orders[0]['id'] : "You don't have any orders yet!";
+                                    }
+                                    else {
+                                        echo "Please login to view your orders";
+                                    }
                                 ?>
                             </h1>
                             <button>
@@ -91,20 +99,20 @@
                     <?php
                         if(isset($orders) && count($orders) > 0){
                             $order = $sever->getOrderById($orders[0]['id']);
-                            $user = $sever->getUserInfo($order['user_name']);
+                            $user = $sever->getCustomerInfo($order['customer_id']);
                             $details = $sever->getOrderDetail($orders[0]['id']);
                     ?>
                         <div class="order-detail">
                             <div class="order-top">
                                 <div class="avatar">
                                     <?php
-                                        echo substr(implode(" ", array_reverse(explode(" ", $user['full_name']))), 0, 1) ;
+                                        echo substr(implode(" ", array_reverse(explode(" ", $user['name']))), 0, 1) ;
                                     ?>
                                 </div>
                                 <div class="order-info">
                                     <h4 class="customer-name">
                                         <?php
-                                            echo $user['full_name'];
+                                            echo $user['name'];
                                         ?>
                                     </h4>
                                     <span class="order-id">
@@ -128,7 +136,7 @@
                                     <h5>To</h5>
                                     <h5 class="to-name">
                                         <?php
-                                            echo $user['full_name'];
+                                            echo $user['name'];
                                         ?>
                                     </h5>
                                     <span class="to-address">
@@ -142,6 +150,9 @@
                                 <table>
                                     <thead>
                                         <tr>
+                                            <th>
+                                                Quantity
+                                            </th>
                                             <th>
                                                 Unit
                                             </th>
@@ -158,6 +169,7 @@
                                             foreach($details as $detail) {
                                         ?>
                                         <tr>
+                                        <td><?php echo $detail['quantity']?></td>
                                             <td><?php echo $detail['unit']?></td>
                                             <td><?php echo $detail['price']?></td>
                                             <td><?php echo $detail['product_name']?></td>
@@ -191,7 +203,7 @@
                                         Discount:
                                     </div>
                                     <div class="discount">
-                                        <strong> <?php echo $order['discount'] ?> VNĐ</strong>
+                                        <strong> <?php echo $order['discount'] ?> %</strong>
                                     </div>
                                 </div>
                                 <div class="row">

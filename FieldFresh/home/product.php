@@ -49,15 +49,16 @@
                             $comments = $sever->getCommentsByProduct($_GET['name'], true);
                             if(isset($comments)){
                             foreach($comments as $comment) {
-                                $user = $sever->getUserInfo($comment['user_name']);
+                                $commentUser = $sever->getCustomerByUser($comment['user_name']);
+                                $commentCustomer = $sever->getCustomerInfo($commentUser['id']);
                         ?>
                         <li class="comment">
                             <div class="comment-avatar">
-                            <?php echo isset($comment) ? substr(implode(" ", array_reverse(explode(" ", $user['full_name']))), 0, 1) : 'G' ?>
+                            <?php echo isset($comment) ? substr(implode(" ", array_reverse(explode(" ", $commentCustomer['name']))), 0, 1) : 'G' ?>
                             </div>
                             <div class="comment-content">
                                 <div class="comment-content-top">
-                                    <span class="comment-user"><?php echo $user['full_name'] ?></span>
+                                    <span class="comment-user"><?php echo $commentCustomer['name'] ?></span>
                                     <?php
                                         $currentDate = new DateTime();
                                         $targetDateObj = DateTime::createFromFormat("Y-m-d H:i:s", $comment['comment_time']);

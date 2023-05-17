@@ -67,7 +67,7 @@ a > * {
     box-shadow: 5px 8px 8px var(--dark);
     display: flex;
     overflow: hidden;
-    animation: showContent 1.5s;
+    animation: showContent 2s;
     transition: 1s;
 }
 

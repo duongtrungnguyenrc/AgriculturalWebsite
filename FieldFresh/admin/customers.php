@@ -16,11 +16,6 @@
 						</li>
 					</ul>
 				</div>
-				<div href="#" class="btn-upload">
-					<i class='bx bxs-cloud-upload' ></i>
-					<input id="file-input" type="file" class="text" accept=".xlsx">
-					<button class="btn btn-sm">Upload file</button>
-				</div>
 			</div>
             <div class="table-data">
 				<div class="order data-table">

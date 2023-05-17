@@ -14,11 +14,11 @@ $(window).ready(() => {
        var searchValue =  $('#search-input').val();
        allData.forEach((value) => {
             if(value.product_name == searchValue){
-                var result = $(`<li><a href="./product.php?name=${value.product_name}" class="text-dark">${value.product_name}</a></li>`);
+                var result = $(`<li><a href="./product.php?name=${value.product_name}&type=${value.type}" class="text-dark">${value.product_name}</a></li>`);
                 result.appendTo($("#search-result"));
             }
             else if(value.type == searchValue) {
-                var result = $(`<li><a href="./product.php?name=${value.product_name}" class="text-dark">${value.product_name}</a></li>`);
+                var result = $(`<li><a href="./product.php?name=${value.product_name}&type=${value.type}" class="text-dark">${value.product_name}</a></li>`);
                 result.appendTo($("#search-result"));
             }
         })
@@ -82,10 +82,10 @@ $(window).ready(() => {
     });
 
     $("#user-btn").click(function(e) {
+        e.preventDefault();
         checkLogin((value) => {
             if(!value) {
-                $.blockUI({ message: '<div class="spinner-border text-light"></div>' , css: {backgroundColor: "transparent", padding: "100px", border: "none"}});
-                window.location.href = "../login/login.php";
+               showFailedNotifycation("Please login to see your profile")
             }
         });
     });
@@ -312,6 +312,19 @@ function showFailedNotifycation(text) {
 }
 
 function generatePDF() {
+    const result = [];
+
+    $("#order #order-right tbody tr").each((index, element) => {
+        console.log(element);
+        const item = [
+            index + 1,
+            $(element).find("td").eq(0).html(),
+            $(element).find("td").eq(1).html(),
+            $(element).find("td").eq(2).html(),
+            $(element).find("td").eq(3).html(),
+        ];
+        result.push(item);
+    });
     var props = {
         outputType: jsPDFInvoiceTemplate.OutputType.Save,
         returnJsPDFDocObject: true,
@@ -347,9 +360,9 @@ function generatePDF() {
         },
         contact: {
             label: "To",
-            name: "Duong Trung Nguyen",
-            phone: "(+84)855004714",
-            address: "25/26 Nguyen Dinh Chieu - Vinh Tho - Nha Trang",
+            name: $("#order #order-right .to-name").html().trim(),
+            //phone: $("#order #order-right .to-phone").html().trim(),
+            address: $("#order #order-right .to-address").html().trim(),
         },
         invoice: {
             label: "Invoice #: ",
@@ -365,36 +378,29 @@ function generatePDF() {
                     width: 10 
                 } 
             },
+            { title: "Quantity"},
             { title: "Unit"},
-            { title: "Name"},
             { title: "Price"},
+            { title: "Name"},
             ],
-            table: Array.from(Array(10), (item, index)=>([
-                index + 1,
-                "x1kg",
-                200.5,
-                "Carrot",
-            ])),
+            table: result,
             additionalRows: [{
                 col1: 'Total:',
-                col2: '145,250.50',
-                col3: 'ALL',
+                col2:  $(".order-detail .total-prices strong").html(),
                 style: {
                     fontSize: 14 //optional, default 12
                 }
             },
             {
-                col1: 'VAT:',
-                col2: '20',
-                col3: '%',
+                col1: 'Discount:',
+                col2: $(".order-detail .discount strong").html(),
                 style: {
                     fontSize: 10 //optional, default 12
                 }
             },
             {
                 col1: 'SubTotal:',
-                col2: '116,199.90',
-                col3: 'Unit',
+                col2: $(".order-detail .last-prices strong").html(),
                 style: {
                     fontSize: 10 //optional, default 12
                 }

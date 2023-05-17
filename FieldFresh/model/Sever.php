@@ -75,7 +75,7 @@
 
         public function getAllUsers($return) {
             $users = array();
-            $sql = "select * from User";
+            $sql = "select * from User, Customer where Customer.id = User.customer_id";
             $result = $this->get($sql);
             if($result){
                 while($user = $result->fetch_assoc()){
@@ -88,11 +88,33 @@
             }
         }
 
+        public function getAccountByCustomer($customerId) {
+            $sql = "SELECT * FROM User WHERE customer_id='$customerId'";
+            $result = $this->get($sql);
+            if ($result) {
+                return $this->get($sql)->fetch_assoc();
+            }
+            else {
+                return null;
+            }
+        }
+
+        public function getCustomerByUser($userName){
+            $sql = "SELECT * FROM Customer WHERE id=(SELECT customer_id FROM User WHERE user_name='$userName')";
+            $result = $this->get($sql);
+            if ($result) {
+                return $this->get($sql)->fetch_assoc();
+            }
+            else {
+                return null;
+            }
+        }
+
         public function login($userName, $password) {
             $sql = "SELECT * FROM User WHERE user_name='$userName'";
             if($data = $this->conn->query($sql)->fetch_assoc()) {
                 if(password_verify($password, $data['password'])) {
-                    return $data['role'];
+                    return array("role" => $data['role'], "customer_id" => $data['customer_id']);
                 }
             }
             return false;  
@@ -105,11 +127,10 @@
             return $user;
         }
 
-        public function getUserInfo($user) {
-            $sql = "SELECT user_name, password,full_name, birth, gender, email, phone, address  FROM User WHERE user_name='$user'";
+        public function getUserInfo($customerId) {
+            $sql = "SELECT user_name, password, role FROM User WHERE customer_id='$customerId'";
             $result = $this->get($sql);
             if ($result) {
-                # code...
                 return $this->get($sql)->fetch_assoc();
             }
             else {
@@ -117,34 +138,80 @@
             }
         }
 
-        public function addNewUser($userName, $password, $name, $birth, $gender, $email, $phone, $address) {
-            $sql = "SELECT * FROM User WHERE user_name='$userName'";
-            if($this->get($sql) === false){
-                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $sql = "INSERT INTO User(user_name, password, full_name, birth, gender, email, phone, address) values('$userName', '$hashed_password', '$name', '$birth', '$gender', '$email','$phone', '$address')";
-                if($this->insert($sql)) {
-                    $newUser = $this->get("select * from User WHERE user_name='$userName'")->fetch_assoc();
-                    return json_encode(array('user' => $newUser, 'status' => true, 'description' => "Successfully to add new user!"));
-                }
-                else {
-                    return json_encode(array('user' => null, 'status' => false, 'description' => "Failed to add new user!"));
-                }
+        public function getCustomerInfo($customerId) {
+            $sql = "SELECT name, birth, gender, email, phone, address  FROM Customer WHERE id='$customerId'";
+            $result = $this->get($sql);
+            if ($result) {
+                return $this->get($sql)->fetch_assoc();
             }
             else {
+                return null;
+            }
+        }
+        
+
+        public function getUsersQuantity() {
+            $sql = "SELECT COUNT(*) as quantity from `Customer`";
+            return $this->get($sql)->fetch_assoc();
+        }
+
+        public function addNewUser($userName, $password, $name, $birth, $gender, $email, $phone, $address) {
+            $sql = "SELECT * FROM User WHERE user_name='$userName'";
+            if ($this->get($sql) === false) {
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        
+                // Thêm thông tin vào bảng Customer
+                $sql = "INSERT INTO Customer(name, birth, gender, email, phone, address) VALUES ('$name', '$birth', '$gender', '$email','$phone', '$address')";
+                if ($customer_id = $this->addNewCustomer($name, $birth, $gender, $email, $phone, $address)) {
+                    // Thêm thông tin vào bảng User
+                    $sql = "INSERT INTO User(user_name, password, customer_id) VALUES ('$userName', '$hashed_password', '$customer_id')";
+                    if ($this->insert($sql)) {
+                        $newUser = $this->get("SELECT * FROM User WHERE user_name='$userName'")->fetch_assoc();
+                        return json_encode(array('user' => $newUser, 'status' => true, 'description' => "Successfully to add new user!"));
+                    } else {
+                        return json_encode(array('user' => null, 'status' => false, 'description' => "Failed to add new user!"));
+                    }
+                } else {
+                    return json_encode(array('user' => null, 'status' => false, 'description' => "Failed to add new customer!"));
+                }
+            } else {
                 return json_encode(array('user' => null, 'status' => false, 'description' => "User already exists!"));
+            }
+        }
+
+        public function addNewCustomer($name, $birth, $gender, $email, $phone, $address) {
+            $sql = "INSERT INTO Customer(name, birth, gender, email, phone, address) VALUES ('$name', '$birth', '$gender', '$email','$phone', '$address')";
+                if ($this->insert($sql)) {
+                    // Lấy ID của customer vừa được tạo tự động
+                    $customer_id = mysqli_insert_id($this->conn);
+                    return $customer_id;
+                }
+            return false;
+        }
+        
+        public function updateCustomerInfo($currentUser, $name, $birth, $gender, $email, $phone, $address) { 
+            $sql = "update Customer SET name='$name', phone='$phone', address='$address', gender='$gender', email='$email', birth='$birth' 
+            WHERE id=(SELECT customer_id FROM User WHERE user_name='$currentUser')";
+            if($this->update($sql)) {
+                return true;
+            }
+            else {
+                return false;
             }
         }
 
         public function updateUser($currentUser, $password, $name, $birth, $gender, $email, $phone, $address) { 
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $sql = "update User SET password='$hashed_password', full_name='$name', phone='$phone', address='$address', gender='$gender', email='$email', birth='$birth' WHERE user_name='$currentUser'";
-            if($this->update($sql)) {
+            $sql = "update User SET password='$hashed_password' WHERE user_name='$currentUser'";
+            if($this->update($sql) && $this->updateCustomerInfo($currentUser, $name, $birth, $gender, $email, $phone, $address)) {
                 return json_encode(array('status' => true, 'description' => "Successfully to update $name!"));
             }
             else {
                 return json_encode(array('status' => false, 'description' => "Failed to update $name!"));
             }
         }
+
+        
 
         public function deleteUser($userName) {
             $sql = "delete from User WHERE user_name='$userName'";
@@ -313,9 +380,9 @@
             }
         } 
 
-        public function getOrdersByUser($userName, $return) {
+        public function getOrdersByCustomer($customerId, $return) {
             $orders = array();
-            $sql = "select * from `Order` WHERE user_name = '$userName'";
+            $sql = "select * from `Order` WHERE customer_id = '$customerId'";
             $result = $this->get($sql);
             if($result){
                 while($order = $result->fetch_assoc()){
@@ -331,8 +398,8 @@
 
         ///
 
-        public function createOrder($totalPrices, $deliveryPrices, $discount, $creationDate, $userName, $products) {
-            $sql = "INSERT INTO `Order`(total_prices, delivery_prices, discount,creation_date, user_name) values('$totalPrices', '$deliveryPrices', '$discount', '$creationDate', '$userName');";
+        public function createOrder($totalPrices, $deliveryPrices, $discount, $creationDate, $customerId, $products) {
+            $sql = "INSERT INTO `Order`(total_prices, delivery_prices, discount,creation_date, customer_id) values('$totalPrices', '$deliveryPrices', '$discount', '$creationDate', '$customerId');";
             if($this->insert($sql)){
                 $sql = "";
                 $newOrder = $this->get("SELECT LAST_INSERT_ID() as id")->fetch_assoc();
@@ -382,11 +449,13 @@
         public function getOrderDetail($id) {
             $detail = array();
             $sql = "SELECT * FROM `Order_Detail` WHERE order_id='$id'";
-            $result = $this->get($sql);
-            while($row = $result->fetch_assoc()) {
-                array_push($detail, $row);
+            if($result = $this->get($sql)) {
+                while($row = $result->fetch_assoc()) {
+                    array_push($detail, $row);
+                }
+                return $detail;
             }
-            return $detail;
+            return [];
         }
 
         ////
@@ -433,13 +502,29 @@
 
         // Notification handle
 
-        public function sendNotification($userName, $orderId, $message) {
-            $sql = "INSERT INTO Notifycations(user_name, order_id, message) VALUES('$userName', '$orderId', '$message');";
+        public function sendNotification($userName, $message) {
+            $sql = "INSERT INTO Notifycations(user_name, message) VALUES('$userName', '$message');";
             if($this->insert($sql)) {
                 return json_encode(array('status' => true, 'description' => "Successfully to send notifications!"));
             }
             else {
                 return json_encode(array('status' => false, 'description' => "Failed to send notifications!"));
+            }
+        }
+
+        public function sendNotificationForAll($message) {
+            $sql = "SELECT * FROM User";
+            $result = $this->get($sql);
+            if($result){
+                while($user = $result->fetch_assoc()){
+                    $userName = $user['user_name'];
+                    $sql = "INSERT INTO Notifycations(user_name, message) VALUES('$userName', '$message');";
+                    $this->insert($sql);
+                }
+                return json_encode(array('status' => true, 'description' => "Successfully to send notifications!"));
+            }
+            else {
+                return json_encode(array('data' => null, 'status' => false, 'description' => "Failed to get all comments!"));
             }
         }
 
@@ -503,6 +588,21 @@
 
         // discount
 
+        public function getAllDiscounts($return) {
+            $discounts = array();
+            $sql = "select * from Discount";
+            $result = $this->get($sql);
+            if($result){
+                while($discount = $result->fetch_assoc()){
+                    array_push($discounts, $discount);
+                }
+                return $return ? $discounts : json_encode(array('data' => $discounts, 'status' => true, 'description' => "Successfully to get all discounts!"));
+            }
+            else {
+                return $return ? null : json_encode(array('data' => null, 'status' => false, 'description' => "Failed to get all discounts!"));
+            }
+        }
+
         public function getDiscount($discountCode, $return) {
             $comments = array();
             $sql = "select * from Discount WHERE discount_code='$discountCode'";
@@ -513,6 +613,16 @@
             }
             else {
                 return $return ? null : json_encode(array('data' => null, 'status' => false, 'description' => "Failed to get discount!"));
+            }
+        }
+
+        public function createDiscount($validDate, $invalidDate, $discountCode, $discountPercentage) {
+            $sql = "INSERT INTO Discount(valid_date, invalid_date, discount_code, discount_percentage) VALUES('$validDate', '$invalidDate', '$discountCode', '$discountPercentage')";
+            if($this->insert($sql)) {
+                echo json_encode(array("status" => true, "description" => "Successfully to create discount"));
+            }
+            else {
+                echo json_encode(array("status" => false, "description" => "Failed to create discount"));
             }
         }
     }

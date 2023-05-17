@@ -30,29 +30,48 @@
                                 <div id="input-delivery-info" class="mt-4">
                                     <form id="input-delivery-address-form" class="row g-3">
                                         <div class="col-md-6">
-                                          <input type="text" class="form-control" id="payment-full-name" placeholder="Full name" <?php echo $login ? "value=\"". $user['full_name'] ."\"" . " disabled" : ""?> required>
+                                          <input type="text" class="form-control" id="payment-full-name" placeholder="Full name" <?php echo $login ? "value=\"". $customer['name'] ."\"" . " disabled" : ""?> required>
                                         </div>
                                         <div class="col-md-6">
-                                          <input type="text" class="form-control" id="payment-phone" placeholder="Phone" <?php echo $login ? "value=\"". $user['phone'] ."\"" . " disabled" : ""?> required>
+                                          <input type="text" class="form-control" id="payment-phone" placeholder="Phone" <?php echo $login ? "value=\"". $customer['phone'] ."\"" . " disabled" : ""?> required>
                                         </div>
                                         <div class="col-md-6">
                                           <select class="form-select" id="payment-city" <?php echo $login ? 'disabled' : '' ?> required>
-                                            <option selected <?php echo $login ? "value=\"" . explode("-", explode(",",$user['address'])[0])[0]  . "\"" : 'disabled' ?>"><?php echo $login ? explode("-", explode(",",$user['address'])[0])[1] : 'City' ?></option>
+                                            <option selected <?php echo $login ? "value=\"" . explode("-", explode(",",$customer['address'])[0])[0]  . "\"" : 'disabled' ?>"><?php echo $login ? explode("-", explode(",",$customer['address'])[0])[1] : 'City' ?></option>
                                           </select>
                                         </div>
                                         <div class="col-md-6">
                                             <select class="form-select" id="payment-district" <?php echo $login ? 'disabled' : '' ?> required>
-                                              <option selected <?php echo $login ? "value=\"" . explode("-", explode(",",$user['address'])[1])[0] . "\"" : 'disabled' ?>"><?php echo $login ? explode("-", explode(",",$user['address'])[1])[1] : 'District' ?></option>
+                                              <option selected <?php echo $login ? "value=\"" . explode("-", explode(",",$customer['address'])[1])[0] . "\"" : 'disabled' ?>"><?php echo $login ? explode("-", explode(",",$customer['address'])[1])[1] : 'District' ?></option>
                                             </select>
                                           </div>
                                         <div class="col-md-12">
                                             <select class="form-select" id="payment-ward" <?php echo $login ? 'disabled' : '' ?> required>
-                                                <option selected <?php echo $login ? "value=\"". explode("-", explode(",",$user['address'])[2])[0]  . "\"" : 'disabled' ?>"><?php echo $login ? explode("-", explode(",",$user['address'])[2])[1] : 'Ward' ?></option>
+                                                <option selected <?php echo $login ? "value=\"". explode("-", explode(",",$customer['address'])[2])[0]  . "\"" : 'disabled' ?>"><?php echo $login ? explode("-", explode(",",$customer['address'])[2])[1] : 'Ward' ?></option>
                                             </select>
                                         </div>
                                         <div class="col-md-12">
-                                            <input type="text" class="form-control" id="payment-address" placeholder="Address" <?php echo $login ? "disabled " . "value=\"". explode("-", explode(",",$user['address'])[3])[0] . "" : '' ?>" required>
-                                          </div>
+                                            <input type="text" class="form-control" id="payment-address" placeholder="Address" <?php echo $login ? "disabled " . "value=\"". explode("-", explode(",",$customer['address'])[3])[0] . "" : '' ?>" required>
+                                        </div>
+                                        <?php
+                                            if(!$login){
+                                        ?>
+                                        <div class="col-md-6">
+                                          <select class="form-select" id="payment-gender" required>
+                                            <option selected disabled>Gender</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                          </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                          <input type="date" class="form-control" id="payment-birth" placeholder="birth" required>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <input type="text" class="form-control" id="payment-email" placeholder="Email" required>
+                                        </div>
+                                        <?php
+                                            }
+                                        ?>
                                     </form>
                                 </div>
                             </div>
@@ -106,7 +125,7 @@
                             </div>
                             <div>
                                 <p>Discount: </p>
-                                <p id="discount">0 VNĐ</p>
+                                <p id="discount">0 %</p>
                             </div>
                             <div>
                                 <p>Last prices:</p>
@@ -120,16 +139,5 @@
         </div>
     </section>
     <script src="../assets/js/payment.js"></script>
-    <script>
-        // $(window).on('beforeunload', function(e) {
-        //     e.preventDefault();
-        //     $.get("../api/payment/clearPaymentSession.php",
-        //         function (data, textStatus, jqXHR) {
-                    
-        //         },
-        //         "json"
-        //     );
-        // });
-    </script>
 </body>
 </html>

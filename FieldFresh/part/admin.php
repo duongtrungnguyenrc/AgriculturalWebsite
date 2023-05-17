@@ -10,6 +10,13 @@
             exit();
         }
     }
+    include '../model/sever.php';
+    $sever = new Sever();
+    if(isset($_SESSION['userName']) && $_SESSION['userName'] != null){
+        $customer = $sever->getCustomerInfo($_SESSION['customerId']);
+        $user = $sever->getUserInfo($_SESSION['customerId']);
+        $notifications = $sever->getNotificationsByUser($_SESSION['userName'], true);
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,8 +36,8 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
     <script src="../assets/js/general.js"></script>
     <script src="../assets/js/admin.js"></script>  
 </head>
@@ -67,7 +74,7 @@
             </li>
             <hr>
             <li class="navbar-item">
-                <a href="../home/home.php">
+                <a href="../home/">
                     <i class='bx bxs-navigation'></i>
                     <label>View website</label>
                 </a>
@@ -87,9 +94,9 @@
             <div class="btn-group">
             <div id="notification-btn-group">
                     <button id="notification-btn" class="notifycation-btn me-1"><i class='bx bxs-bell-ring'></i></button>
-                    <span id="notification-tag"><?php echo isset($user) ? count($notifications) : 0 ?></span>
+                    <span id="notification-tag"><?php echo isset($notifications) ? count($notifications) : 0 ?></span>
                 </div>
-                <button id="user-btn" class="user-btn" data-bs-toggle="offcanvas" data-bs-target="#user"><?php echo isset($user) ? substr(implode(" ", array_reverse(explode(" ", $user['full_name']))), 0, 1)  : "G" ?></button>
+                <button id="user-btn" class="user-btn" data-bs-toggle="offcanvas" data-bs-target="#user"><?php echo isset($customer) ? substr(implode(" ", array_reverse(explode(" ", $customer['name']))), 0, 1)  : "G" ?></button>
             </div>
             <div id="notification-popup" class="notification-popup">
                 <div class="notification-popup-top">
